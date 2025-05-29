@@ -1,6 +1,6 @@
 import numpy as np
+import random
 
-# 盤面サイズを6に変更
 BOARD_SIZE = 6
 
 from ..data.black_stones import BlackStones
@@ -149,3 +149,9 @@ class Othello:
             elif sign == 2:
                 self.white_stones[row][column].current.visible = False
                 self.black_stones[row][column].current.visible = True
+
+    def ai_move(self, page):
+        can_put = self.can_put_area(self.turn)
+        if can_put:
+            row, col = random.choice(can_put)
+            self.put_stone(row, col, page)

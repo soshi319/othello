@@ -32,6 +32,12 @@ class GameView(ft.View):
     def on_click_start_game(self, e):
         self.game.start_game()
         self.page.update()
+        self.try_ai_move()  # 開始時もAIが打てるなら打つ
+
+    def try_ai_move(self):
+        # 黒番（AIの手番）なら自動でAIを動かす
+        if self.game.turn == 2:
+            self.game.ai_move(self.page)
 
     def makeOthelloBoard(self, page):
         board_length = page.height * 0.8
@@ -177,7 +183,7 @@ class GameView(ft.View):
                     left=grid_size * column + grid_size * 1 / 20,
                     opacity=0,
                     ref=self.click_areas[row][column],
-                    on_click=lambda e, r=row, c=column: self.game.put_stone(r, c, page)
+                    on_click=lambda e, r=row, c=column: (self.game.put_stone(r, c, page), self.try_ai_move())
                 )
                 click_areas.append(btn)
 
