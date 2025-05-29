@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import time
 
 BOARD_SIZE = 6
 
@@ -153,5 +154,6 @@ class Othello:
     def ai_move(self, page):
         can_put = self.can_put_area(self.turn)
         if can_put:
+            time.sleep(0.5)
             row, col = random.choice(can_put)
             self.put_stone(row, col, page)

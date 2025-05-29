@@ -4,7 +4,7 @@ from views.title_view import TitleView
 from views.game_view import GameView
 
 def main(page: ft.Page):
-  page.title = "三代目のオセロ"
+  page.title = "オセロ"
 
   def route_change(e: ft.RouteChangeEvent):
     page.views.clear()

@@ -45,16 +45,16 @@ class GameView(ft.View):
 
         # ボードの外側
         container = ft.Container(
-            height=page.height * 8 / 10,
-            width=board_length,
-            bgcolor='#ffffff',
+            height=page.height * 0.9,
+            width=page.width * 0.9,
+            bgcolor="#7decff",
         )
 
         # ボードをまとめる用
         board_container = ft.Container(
             height=board_length + 1,
             width=board_length + 1,
-            bgcolor='#ffffff',
+            bgcolor="#8c00ff",
         )
 
         # ボードの緑のところ
