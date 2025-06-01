@@ -29,7 +29,6 @@ class Othello:
         c = BOARD_SIZE // 2
         self.flip([(c-1, c-1), (c, c)], 1)
         self.flip([(c-1, c), (c, c-1)], 2)
-        self.can_put_area_visible()
   
     def put_stone(self, row, column, page):
         if not self.can_put_area(self.turn):
@@ -40,7 +39,7 @@ class Othello:
             if self.turn == 1:
                 self.flip(self.flip_area(row, column), 1)
                 self.turn = 2
-                self.can_put_area_visible()
+                self.can_put_area_unvisible()
             elif self.turn == 2:
                 self.flip(self.flip_area(row, column), 2)
                 self.turn = 1
@@ -55,6 +54,11 @@ class Othello:
 
         for row, column in can_flip_area:
             self.can_put_dots[row][column].current.visible = True
+
+    def can_put_area_unvisible(self):
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
+                self.can_put_dots[i][j].current.visible = False
 
     def can_put_area(self, turn):
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
