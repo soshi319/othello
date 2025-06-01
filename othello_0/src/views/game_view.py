@@ -37,7 +37,7 @@ class GameView(ft.View):
     def try_ai_move(self):
         # 黒番（AIの手番）なら自動でAIを動かす
         if self.game.turn == 2:
-            self.game.ai_move(self.page)
+            self.game.monte_carlo_ai_move(self.page)
 
     def makeOthelloBoard(self, page):
         board_length = page.height * 0.8
