@@ -169,14 +169,14 @@ class Othello:
             time.sleep(0.5)
             row, col = random.choice(can_put)
             self.put_stone(row, col, page)
-    
+
     def monte_carlo_ai_move(self, page, num_simulations=500):
         can_put = self.can_put_area(self.turn)
         if not can_put:
             if self.try_pass(page):
                 page.update()
                 return
-            
+
         best_winrate = -1
         best_move = None
         for row, col in can_put:
