@@ -2,15 +2,30 @@ import flet as ft # type: ignore
 
 from views.title_view import TitleView
 from views.game_view import GameView
+from views.select_level_view import SelectLevelView
+from views.select_turn_view import SelectTurnView
 
 def main(page: ft.Page):
+  page.window_full_screen = True
+  page.window_maximized = True
+  page.padding = 0
   page.title = "オセロ"
+  page.level = "easy"
+  page.player_color = "black"
 
   def route_change(e: ft.RouteChangeEvent):
     page.views.clear()
     if e.route == "/":
       page.views.append(
         TitleView(page, e.route)
+      )
+    elif e.route == "/select_level":
+      page.views.append(
+        SelectLevelView(page, e.route)
+      )
+    elif e.route == "/select_turn":
+      page.views.append(
+        SelectTurnView(page, e.route)
       )
     elif e.route == "/othello":
       page.views.append(
@@ -28,4 +43,4 @@ def main(page: ft.Page):
   page.go(page.route)
 
 
-ft.app(main, view=ft.AppView.WEB_BROWSER)
+ft.app(main)
