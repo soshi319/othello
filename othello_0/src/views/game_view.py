@@ -1,3 +1,4 @@
+# game_view.py (ファイル27の修正案)
 import os
 import sys
 import flet as ft # type: ignore
@@ -6,41 +7,39 @@ BOARD_SIZE = 6
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.controller.othello_controller import Othello
+from src.controller.othello_controller import Othello # ファイル26のOthelloControllerを参照
 from src.data.white_stones import WhiteStones
 from src.data.black_stones import BlackStones
 from src.data.can_put_dots import CanPutDots
 
-# game_view.py
-
-# ... (import文など) ...
-
 class GameView(ft.View):
-    def __init__(self, page_arg, route): # 引数名を page から page_arg に変更して区別しやすくする
+    def __init__(self, page_arg, route):
         print(f"DEBUG GameView __init__: Received page_arg: {page_arg} (ID: {id(page_arg)})")
         
-        self.page_ref = page_arg # インスタンス変数に保持するが、super() の影響を受ける可能性を考慮
-                                # 主に他のメソッドで使うために保持するが、コールバック登録には page_arg を直接使う
+        self.page_ref = page_arg 
 
         self.white_stones = WhiteStones.white_stones
         self.black_stones = BlackStones.black_stones
         self.can_put_dots = CanPutDots.can_put_dots
         self.click_areas = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        # self.page = page_arg # ここで代入しても super() で None になる可能性がある
-
+        
         self.player_color = getattr(page_arg, "player_color", "black")
         self.ai_color = "white" if self.player_color == "black" else "black"
 
-        # Othelloインスタンスの初期化 (使用するコントローラに合わせてください)
-        self.game = Othello() 
-        # ai_player_number = 1 if self.ai_color == "white" else 2
-        # self.game = Othello(ai_player_number=ai_player_number)
+        # ★★★ AIのプレイヤー番号を決定し、Othelloインスタンスに渡す ★★★
+        ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
+        self.game = Othello(ai_player_number=ai_player_number_for_ctrl) 
 
 
         self.start_button = ft.ElevatedButton(
             "START",
-            on_click=lambda e: self.on_click_start_game(e, page_arg) # page_arg を渡す
-            # ... (styleなどはそのまま) ...
+            on_click=lambda e: self.on_click_start_game(e, page_arg),
+            style=ft.ButtonStyle( 
+                bgcolor="#FFFFFF", color="#000000", overlay_color="#818181",
+                padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10),
+                text_style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)
+            ),
+            height=70, width=250
         )
         
         self.result_dialog = ft.AlertDialog(
@@ -48,12 +47,12 @@ class GameView(ft.View):
             title=ft.Text("ゲーム結果"),
             content=ft.Text("ここに結果が表示されます。"), 
             actions=[
-                ft.TextButton("タイトルへ戻る", on_click=lambda e: self.go_to_title(e, page_arg)), # page_arg を渡す
+                ft.TextButton("タイトルへ戻る", on_click=lambda e: self.go_to_title(e, page_arg)),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )
         
-        othello_board_ui = self.makeOthelloBoard(page_arg) # page_arg を渡す
+        othello_board_ui = self.makeOthelloBoard(page_arg)
         
         self.main_stack_controls = [
             othello_board_ui,
@@ -64,14 +63,6 @@ class GameView(ft.View):
             )
         ]
 
-        # ★★★ コールバックの登録を super().__init__ の「前」に行い、引数の page_arg を使用 ★★★
-        # page_arg が None でないことを確認
-        if page_arg is not None:
-            page_arg.show_game_result_callback = lambda wc, bc: self.show_result_dialog(wc, bc, page_arg) # page_arg を渡す
-            print(f"DEBUG VIEW: Callback 'show_game_result_callback' registered ON page_arg (ID: {id(page_arg)}) BEFORE super().__init__")
-        else:
-            print("DEBUG VIEW: ERROR - page_arg is None BEFORE super().__init__ and callback registration.")
-
         super().__init__(
             route,
             [
@@ -81,21 +72,15 @@ class GameView(ft.View):
                 )
             ]
         )
-        page_arg.show_game_result_callback = lambda wc, bc: self.show_result_dialog(wc, bc, page_arg)
+        # pageへのコールバック登録は不要 (コントローラから直接ビューのメソッドを呼ぶため)
 
 
-    def on_click_start_game(self, e, current_page): # current_page を受け取る
+    def on_click_start_game(self, e, current_page):
         print(f"DEBUG VIEW: on_click_start_game called on page {id(current_page)}")
-        self.game.start_game()
+        self.game.start_game() # この中で初期配置が行われる
         
-        if hasattr(self.game, 'update_can_put_dots_display'):
-             self.game.update_can_put_dots_display()
-        elif hasattr(self.game, 'can_put_area_visible'): 
-            if self.player_color == "black" and self.game.turn == 2:
-                self.game.can_put_area_visible()
-            elif self.player_color == "white": 
-                if hasattr(self.game, 'can_put_area_unvisible'):
-                    self.game.can_put_area_unvisible()
+        # ★★★ ゲーム開始時のヒント表示を update_can_put_dots_display に統一 ★★★
+        self.game.update_can_put_dots_display()
         
         button_container_to_remove = None
         for ctrl in self.main_stack_controls:
@@ -107,31 +92,34 @@ class GameView(ft.View):
             if self.controls and isinstance(self.controls[0], ft.Stack):
                 self.controls[0].controls = self.main_stack_controls
         
-        current_page.update() # current_page を使用
-        self.try_ai_move(current_page) # current_page を渡す
+        current_page.update()
+        self.try_ai_move(current_page)
 
-    def try_ai_move(self, current_page): # current_page を受け取る
-        ai_turn_number = 1 if self.ai_color == "white" else 2
-        if self.game.turn == ai_turn_number:
-            level = getattr(current_page, "level", "easy") # current_page を使用
+    def try_ai_move(self, current_page):
+        # OthelloController側でai_player_numberを使って判定するので、
+        # ここでは単純に現在のターンがAIの論理的な手番と一致するかを見るだけでよい。
+        # AIがどちらの色かは self.ai_color で判定。
+        ai_turn_in_controller = self.game.ai_player_number # コントローラ内のAIの手番
+        
+        print(f"DEBUG VIEW: try_ai_move. Game turn: {self.game.turn}, Controller AI Num: {ai_turn_in_controller}")
+
+        if self.game.turn == ai_turn_in_controller: # 現在のゲームのターンが、コントローラが認識するAIのターンか
+            level = getattr(current_page, "level", "easy")
+            print(f"DEBUG VIEW: AI's turn ({self.ai_color}). Level: {level}")
             if level == "easy":
-                self.game.ai_move(current_page) # current_page を使用
-            # ... (他のAIレベルも同様に current_page を渡す) ...
+                self.game.ai_move(current_page)
             elif level == "normal":
                 self.game.monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "hard":
                 self.game.monte_carlo_ai_move(current_page, num_simulations=500)
             elif level == "master":
                 self.game.monte_carlo_ai_move(current_page, num_simulations=1000)
+        # else:
+            # print(f"DEBUG VIEW: Not AI's turn. Player ({self.player_color}) should move.")
 
 
-    def makeOthelloBoard(self, current_page): # current_page を受け取る
-        # ... (このメソッド内で page の代わりに current_page を使用) ...
+    def makeOthelloBoard(self, current_page):
         board_length = current_page.height * 0.8 
-        # ...
-        # on_click=lambda e, r=row_idx, c=col_idx: self.handle_player_move(r, c, current_page)
-        # ...
-        # (以下、同様に page を current_page に置き換える)
         grid_size = board_length / BOARD_SIZE
         container = ft.Container(height=current_page.height, width=current_page.width, bgcolor="#7decff")
         board_container = ft.Container(height=board_length + 1, width=board_length + 1, bgcolor="#8c00ff")
@@ -153,7 +141,7 @@ class GameView(ft.View):
                     height=grid_size * 9 / 10, width=grid_size * 9 / 10, opacity=0,
                     top=grid_size * row_idx + grid_size * 1 / 20, left=grid_size * col_idx + grid_size * 1 / 20,
                     ref=self.click_areas[row_idx][col_idx],
-                    on_click=lambda e, r=row_idx, c=col_idx: self.handle_player_move(r, c, current_page) # current_page を渡す
+                    on_click=lambda e, r=row_idx, c=col_idx: self.handle_player_move(r, c, current_page) 
                 )
                 click_areas_list.append(btn)
         can_put_dots_list = []
@@ -165,34 +153,32 @@ class GameView(ft.View):
         stack = ft.Stack(controls=[container, othello], alignment=ft.alignment.center)
         return stack
     
-    def handle_player_move(self, r, c, current_page): # current_page を受け取る
-        player_turn_number = 1 if self.player_color == "white" else 2
-        if self.game.turn == player_turn_number:
+    def handle_player_move(self, r, c, current_page):
+        player_turn_in_controller = 1 if self.player_color == "white" else 2
+        
+        if self.game.turn == player_turn_in_controller:
             if (r,c) in self.game.can_put_area(self.game.turn):
-                self.game.put_stone(r, c, current_page) # current_page を使用
+                self.game.put_stone(r, c, current_page)
                 if self.game.turn != 0 :
-                    self.try_ai_move(current_page) # current_page を使用
+                    self.try_ai_move(current_page)
 
-    def show_result_dialog(self, white_count, black_count, current_page):
+    def show_result_dialog(self, white_count, black_count, current_page_obj):
+        print(f"DEBUG VIEW: show_result_dialog CALLED. White: {white_count}, Black: {black_count} on page {id(current_page_obj)}")
         result_text = f"白: {white_count}  黒: {black_count}\n\n"
-        if white_count > black_count:
-            result_text += "白の勝ち！"
-        elif black_count > white_count:
-            result_text += "黒の勝ち！"
-        else:
-            result_text += "引き分け！"
-        dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("ゲーム結果"),
-            content=ft.Text(result_text, text_align=ft.TextAlign.CENTER, size=18),
-            actions=[ft.TextButton("タイトルへ戻る", on_click=lambda e: current_page.go("/"))],
-        )
-        current_page.dialog = dlg
-        dlg.open = True
-        current_page.update()
+        if white_count > black_count: result_text += "白の勝ち！"
+        elif black_count > white_count: result_text += "黒の勝ち！"
+        else: result_text += "引き分け！"
+        
+        self.result_dialog.content = ft.Text(result_text, text_align=ft.TextAlign.CENTER, size=18)
+        
+        current_page_obj.dialog = self.result_dialog
+        self.result_dialog.open = True
+        
+        print("DEBUG VIEW: Dialog open set to True. Updating page.")
+        current_page_obj.update()
 
-    def go_to_title(self, e, current_page): # current_page を受け取る
+    def go_to_title(self, e, current_page_obj):
         print("DEBUG VIEW: go_to_title called")
-        if current_page.dialog:  # current_page を使用
-            current_page.dialog.open = False
-        current_page.go("/") # current_page を使用
+        if current_page_obj.dialog: 
+            current_page_obj.dialog.open = False
+        current_page_obj.go("/")
