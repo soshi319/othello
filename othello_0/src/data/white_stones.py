@@ -1,6 +1,8 @@
 import flet as ft # type: ignore
 
-BOARD_SIZE = 6
+from settings import BOARD_SIZE
 
 class WhiteStones:
-  white_stones = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+  def __init__(self):
+    from settings import BOARD_SIZE
+    self.white_stones = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]

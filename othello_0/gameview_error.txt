@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 31, in __init__
+    self.game = Othello(ai_player_number=ai_player_number_for_ctrl)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Othello.__init__() missing 3 required positional arguments: 'white_stones', 'black_stones', and 'can_put_dots'

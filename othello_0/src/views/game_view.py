@@ -1,119 +1,131 @@
 import os
 import sys
+import traceback
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import flet as ft # type: ignore
-import time # 必要に応じて
 
-BOARD_SIZE = 6
+from settings import BOARD_SIZE
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from src.controller.othello_controller import Othello
-from src.data.white_stones import WhiteStones
-from src.data.black_stones import BlackStones
-from src.data.can_put_dots import CanPutDots
-
+from controller.othello_controller import Othello
+from data.white_stones import WhiteStones
+from data.black_stones import BlackStones
+from data.can_put_dots import CanPutDots
 class GameView(ft.View):
     def __init__(self, page_arg, route):
-        print(f"DEBUG GameView __init__: Received page_arg: {page_arg} (ID: {id(page_arg)})")
-        
-        self.page_ref = page_arg 
-        page_arg.current_game_view_instance = self 
+        try:
+            print(f"DEBUG GameView __init__: Received page_arg: {page_arg} (ID: {id(page_arg)})")
+            
+            self.page_ref = page_arg 
+            page_arg.current_game_view_instance = self 
 
-        self.white_stones = WhiteStones.white_stones
-        self.black_stones = BlackStones.black_stones
-        self.can_put_dots = CanPutDots.can_put_dots
-        self.click_areas = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        
-        self.player_color = getattr(page_arg, "player_color", "black")
-        self.ai_color = "white" if self.player_color == "black" else "black"
+            self.white_stones = WhiteStones().white_stones
+            self.black_stones = BlackStones().black_stones
+            self.can_put_dots = CanPutDots().can_put_dots
+            self.click_areas = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+            
+            self.player_color = getattr(page_arg, "player_color", "black")
+            self.ai_color = "white" if self.player_color == "black" else "black"
 
-        ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
-        self.game = Othello(ai_player_number=ai_player_number_for_ctrl) 
+            ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
+            self.ai_player_number = ai_player_number_for_ctrl  # または適切な値
+            
+            self.start_button = ft.ElevatedButton(
+                "START",
+                on_click=self.on_click_start_game, # page_argを渡す必要がなくなりました
+                style=ft.ButtonStyle( 
+                    bgcolor="#FFFFFF", color="#000000", overlay_color="#818181",
+                    padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10),
+                    text_style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)
+                ),
+                height=70, width=250
+            )
+            
+            self.result_text_control = ft.Text("結果計算中...", size=30, weight=ft.FontWeight.BOLD, color="#FFFFFF")
+            self.result_score_control = ft.Text("白: 0  黒: 0", size=24, color="#FFFFFF")
+            self.result_overlay = ft.Container(
+                content=ft.Column(
+                    [
+                        self.result_text_control,
+                        self.result_score_control,
+                        ft.ElevatedButton(
+                            "タイトルへ戻る",
+                            on_click=self.go_to_title, # page_argを渡す必要がなくなりました
+                            bgcolor="#4A5568", 
+                            color="#FFFFFF",
+                            width=200,
+                            height=50,
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10))
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=20,
+                ),
+                alignment=ft.alignment.center, expand=True,
+                bgcolor="#80000000", # 黒の85%不透明
+                visible=False, 
+            )
 
-        self.start_button = ft.ElevatedButton(
-            "START",
-            on_click=self.on_click_start_game, # page_argを渡す必要がなくなりました
-            style=ft.ButtonStyle( 
-                bgcolor="#FFFFFF", color="#000000", overlay_color="#818181",
-                padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10),
-                text_style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)
-            ),
-            height=70, width=250
-        )
-        
-        self.result_text_control = ft.Text("結果計算中...", size=30, weight=ft.FontWeight.BOLD, color="#FFFFFF")
-        self.result_score_control = ft.Text("白: 0  黒: 0", size=24, color="#FFFFFF")
-        self.result_overlay = ft.Container(
-            content=ft.Column(
-                [
-                    self.result_text_control,
-                    self.result_score_control,
-                    ft.ElevatedButton(
-                        "タイトルへ戻る",
-                        on_click=self.go_to_title, # page_argを渡す必要がなくなりました
-                        bgcolor="#4A5568", 
-                        color="#FFFFFF",
-                        width=200,
-                        height=50,
-                        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10))
-                    )
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=20,
-            ),
-            alignment=ft.alignment.center, expand=True,
-            bgcolor="#80000000", # 黒の85%不透明
-            visible=False, 
-        )
+            self.your_turn_image = ft.Image(
+                src="/your_turn.png", # assetsフォルダ内のあなたのターン用画像
+                width=400,            # 表示サイズは適宜調整
+                height=120,
+                fit=ft.ImageFit.CONTAIN,
+                visible=False
+            )
+            self.cpu_turn_image = ft.Image(
+                src="/cpu_turn.png",   # assetsフォルダ内のCPUのターン用画像
+                width=400,
+                height=120,
+                fit=ft.ImageFit.CONTAIN,
+                visible=False
+            )
 
-        self.your_turn_image = ft.Image(
-            src="/your_turn.png", # assetsフォルダ内のあなたのターン用画像
-            width=400,            # 表示サイズは適宜調整
-            height=120,
-            fit=ft.ImageFit.CONTAIN,
-            visible=False
-        )
-        self.cpu_turn_image = ft.Image(
-            src="/cpu_turn.png",   # assetsフォルダ内のCPUのターン用画像
-            width=400,
-            height=120,
-            fit=ft.ImageFit.CONTAIN,
-            visible=False
-        )
+            self.turn_indicator_container = ft.Container(
+                content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
+                top=20,  # 画面上からの位置調整
+                left=20, # 画面左からの位置調整
+                padding=5,
+                # bgcolor=ft.colors.with_opacity(0.5, ft.colors.BLUE_ACCENT) # デバッグ用背景色
+            )
 
-        self.turn_indicator_container = ft.Container(
-            content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
-            top=20,  # 画面上からの位置調整
-            left=20, # 画面左からの位置調整
-            padding=5,
-            # bgcolor=ft.colors.with_opacity(0.5, ft.colors.BLUE_ACCENT) # デバッグ用背景色
-        )
-
-        othello_board_ui = self.makeOthelloBoard() # page_argを渡す必要がなくなりました
-        
-        self.start_button_container = ft.Container( 
-            content=self.start_button,
-            alignment=ft.alignment.center,
-            expand=True
-        )
-        
-        self.main_stack_controls = [
-            othello_board_ui,
-            self.turn_indicator_container, 
-            self.start_button_container,
-            self.result_overlay 
-        ]
-        
-        super().__init__(
-            route,
-            [
-                ft.Stack(
-                    controls=self.main_stack_controls,
-                    expand=True
-                )
+            othello_board_ui = self.makeOthelloBoard() # page_argを渡す必要がなくなりました
+            
+            self.start_button_container = ft.Container( 
+                content=self.start_button,
+                alignment=ft.alignment.center,
+                expand=True
+            )
+            
+            self.main_stack_controls = [
+                othello_board_ui,
+                self.turn_indicator_container, 
+                self.start_button_container,
+                self.result_overlay 
             ]
-        )
+            
+            super().__init__(
+                route,
+                [
+                    ft.Stack(
+                        controls=self.main_stack_controls,
+                        expand=True
+                    )
+                ]
+            )
+        except Exception as e:
+            with open("gameview_error.txt", "w", encoding="utf-8") as f:
+                f.write(traceback.format_exc())
+            # Optional: エラー内容をFlet画面上で表示したい場合
+            super().__init__(
+                route,
+                [
+                    ft.Text("GameViewの初期化中にエラーが発生しました"),
+                    ft.Text(str(e)),
+                ]
+            )
+
 
     def update_turn_indicator(self):
         current_page = self.page_ref
@@ -135,20 +147,28 @@ class GameView(ft.View):
         
         current_page.update() # ターン表示の変更をUIに反映
 
+
     def on_click_start_game(self, e):
-        current_page = self.page_ref
-        print(f"DEBUG VIEW: on_click_start_game called on page {id(current_page)}")
-        self.game.start_game() 
-        self.game.update_can_put_dots_display() # コントローラ側のヒント更新
-        self.update_turn_indicator() # 最初のターン表示
-        
+        self.page_ref.update()   # ここでRef.currentが解決される
+
+        # ここでRefを渡してコントローラ生成
+        self.game = Othello(
+            self.white_stones,   # 既にUIツリーに載っているRef
+            self.black_stones,
+            self.can_put_dots,
+            self.ai_player_number  # 必要なパラメータ
+        )
+
+        self.game.start_game()
+        self.game.update_can_put_dots_display()
+        self.update_turn_indicator()
         if self.start_button_container in self.main_stack_controls:
             self.main_stack_controls.remove(self.start_button_container)
             if self.controls and isinstance(self.controls[0], ft.Stack):
                 self.controls[0].controls = self.main_stack_controls
-        
-        current_page.update() # スタートボタン除去とヒント/ターン表示の更新を反映
+        self.page_ref.update()
         self.try_ai_move()
+
 
     def try_ai_move(self):
         current_page = self.page_ref

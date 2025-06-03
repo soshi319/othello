@@ -3,21 +3,23 @@ import numpy as np
 import random
 import time
 
-BOARD_SIZE = 6
+from settings import BOARD_SIZE
 
-from ..data.black_stones import BlackStones
-from ..data.white_stones import WhiteStones
-from ..data.can_put_dots import CanPutDots
+from data.black_stones import BlackStones
+from data.white_stones import WhiteStones
+from data.can_put_dots import CanPutDots
 
 class Othello:
-    def __init__(self, ai_player_number=None):
+    def __init__(self, white_stones, black_stones, can_put_dots, ai_player_number=None):
+        from settings import BOARD_SIZE
         self.board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
         c = BOARD_SIZE // 2
         self.board[c-1, c-1] = 1; self.board[c, c] = 1
         self.board[c-1, c] = 2; self.board[c, c-1] = 2
-        self.white_stones = WhiteStones.white_stones
-        self.black_stones = BlackStones.black_stones
-        self.can_put_dots = CanPutDots.can_put_dots
+        # 外から受け取ったRefで管理
+        self.white_stones = white_stones
+        self.black_stones = black_stones
+        self.can_put_dots = can_put_dots
         self.turn = 2
         self.ai_player_number = ai_player_number
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")

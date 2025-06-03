@@ -1,3 +1,9 @@
+import os
+import sys
+
+# プロジェクトルート（srcの1つ上）をパスに追加
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import flet as ft # type: ignore
 
 from views.title_view import TitleView
