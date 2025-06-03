@@ -266,7 +266,104 @@ class Othello:
                         possible_moves_s.append((r_idx_s, c_idx_s))
         return possible_moves_s
     
-    def try_pass(self, page_arg_ctrl): # 引数名を page -> page_arg_ctrl に統一
+        # ============================================================
+    #  ▼ 強化 CPU: α–β 探索 (Negamax) 実装  ▼
+    # ============================================================
+
+    # 位置評価用の 6×6 重み表（角 > 辺 > 中央 のシンプル版）
+    _WEIGHTS_6x6 = np.array([
+        [100, -20,  10,  10, -20, 100],
+        [-20, -50,  -2,  -2, -50, -20],
+        [ 10,  -2,   5,   5,  -2,  10],
+        [ 10,  -2,   5,   5,  -2,  10],
+        [-20, -50,  -2,  -2, -50, -20],
+        [100, -20,  10,  10, -20, 100],
+    ])
+
+    # --- 静的評価 -------------------------------------------------
+    def _evaluate_static(self, board_sta, turn_sta):
+        """
+        位置重み + モビリティ差の評価値を返す。
+        ※ 6×6 盤専用の _WEIGHTS_6x6 を使用
+        """
+        opp = 3 - turn_sta
+
+        # --- 位置重み --------------------------------------------------
+        # 角・辺などの重みを、自分の石の座標と相手の石の座標で個別に合計し差を取る
+        my_score  = np.sum(self._WEIGHTS_6x6[board_sta == turn_sta])
+        opp_score = np.sum(self._WEIGHTS_6x6[board_sta == opp])
+        pos_score = my_score - opp_score
+
+        # --- モビリティ（合法手数差）----------------------------------
+        mob_score = 2 * (
+            len(self._simulate_can_put_area(board_sta, turn_sta)) -
+            len(self._simulate_can_put_area(board_sta, opp))
+        )
+
+        return pos_score + mob_score
+    # --- 盤面コピー＆着手適用 ------------------------------------
+    def _clone_after_move_static(self, board_sta, r_sta, c_sta, turn_sta):
+        """board_sta をコピーし (r,c) へ turn_sta が打った盤面を返す."""
+        new_brd = np.copy(board_sta)
+        self._simulate_put_stone(new_brd, r_sta, c_sta, turn_sta)
+        return new_brd
+
+    # --- Negamax + α–β ------------------------------------------
+    def _negamax(self, board_ng, turn_ng, depth, alpha, beta):
+        """Negamax 本体。評価値を返す."""
+        moves = self._simulate_can_put_area(board_ng, turn_ng)
+        if depth == 0 or not moves:
+            # パスが可能なら 1 手スキップして評価
+            if not moves and self._simulate_can_put_area(board_ng, 3 - turn_ng):
+                return -self._negamax(board_ng, 3 - turn_ng,
+                                      depth, -beta, -alpha)
+            return self._evaluate_static(board_ng, turn_ng)
+
+        best = -1e9
+        for r, c in moves:
+            child = self._clone_after_move_static(board_ng, r, c, turn_ng)
+            val = -self._negamax(child, 3 - turn_ng,
+                                 depth - 1, -beta, -alpha)
+            best = max(best, val)
+            alpha = max(alpha, val)
+            if alpha >= beta:      # β カット
+                break
+        return best
+
+    # --- 公開 API: 強化 CPU の着手 -------------------------------
+    def alpha_beta_ai_move(self, page, depth=5):
+        """
+        深さ `depth` の α–β 探索で最善手を指す。
+        `page` は既存 put_stone() と同じく UI 更新に回す。
+        """
+        possible_moves = self.can_put_area(self.turn)
+        if not possible_moves:
+            if self.try_pass(page):
+                return
+            # パス不可 & 手も無し → ゲーム終了処理は try_pass 内で実施済み
+            return
+
+        best_val = -1e9
+        best_move = None
+        # 着手順はモビリティの少ない手を優先すると枝刈り効率が上がる
+        for r, c in sorted(possible_moves,
+                           key=lambda rc: -len(self._simulate_can_put_area(
+                               self._clone_after_move_static(
+                                   self.board, rc[0], rc[1], self.turn),
+                               3 - self.turn))):
+            next_board = self._clone_after_move_static(self.board, r, c, self.turn)
+            val = -self._negamax(next_board, 3 - self.turn,
+                                 depth - 1, -1e9, 1e9)
+            if val > best_val:
+                best_val = val
+                best_move = (r, c)
+
+        # 着手実行
+        if best_move is not None:
+            self.put_stone(best_move[0], best_move[1], page)
+
+    
+    def try_pass(self, page_arg_ctrl):
         current_turn_before_pass = self.turn
         print(f"DEBUG CONTROLLER: try_pass called for turn {current_turn_before_pass}")
         
@@ -292,9 +389,17 @@ class Othello:
             if not self.can_put_area(self.turn):
                 next_player_name = "白" if self.turn == 1 else "黒"
                 print(f"{next_player_name}も置けません。両者ともパスとなり、ゲーム終了です。")
-                self.end_game(page_arg_ctrl) 
-            return True  
-        
+                self.end_game(page_arg_ctrl)
+            else:
+                # ☆☆☆ パス後に手番が AI ならすぐ思考させる ☆☆☆
+                if self.ai_player_number is not None and self.turn == self.ai_player_number:
+                    if hasattr(page_arg_ctrl, "current_game_view_instance"):
+                        gv = page_arg_ctrl.current_game_view_instance
+                        if hasattr(gv, "try_ai_move") and callable(gv.try_ai_move):
+                            print("DEBUG CONTROLLER: try_pass -> calling GameView.try_ai_move()")
+                            gv.try_ai_move()
+
+            return True   # ← AI 呼び出しの後でリターン
         return False 
     
     def end_game(self, page_arg_ctrl):
