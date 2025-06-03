@@ -28,6 +28,7 @@ def main(page: ft.Page):
         SelectTurnView(page, e.route)
       )
     elif e.route == "/othello":
+      print(f"DEBUG MAIN: page object before creating GameView: {page} (ID: {id(page)})")
       page.views.append(
         GameView(page, e.route)
       )
