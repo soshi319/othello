@@ -1,4 +1,4 @@
-# othello_controller.py (ファイル26の修正案)
+# othello_controller.py (ファイル31の修正案)
 import numpy as np
 import random
 import time
@@ -22,13 +22,12 @@ class Othello:
         self.ai_player_number = ai_player_number
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")
 
-
     def start_game(self):
         print("DEBUG CONTROLLER: start_game called")
         c = BOARD_SIZE // 2
         self.flip([(c-1, c-1), (c, c)], 1)
         self.flip([(c-1, c), (c, c-1)], 2)
-        # update_can_put_dots_display は GameView の on_click_start_game から呼ばれる想定
+        # ヒント表示は GameView の on_click_start_game 内で update_can_put_dots_display を呼び出す
 
     def update_can_put_dots_display(self):
         for i in range(BOARD_SIZE):
@@ -43,8 +42,6 @@ class Othello:
             for row, column in possible_moves:
                 if self.can_put_dots[row][column] and hasattr(self.can_put_dots[row][column], 'current') and self.can_put_dots[row][column].current:
                     self.can_put_dots[row][column].current.visible = True
-        # else:
-            # print(f"DEBUG CONTROLLER: AI's turn, no dots shown.")
   
     def put_stone(self, row, column, page):
         print(f"DEBUG CONTROLLER: put_stone trying for ({row},{column}). Current Turn: {self.turn}")
@@ -69,7 +66,12 @@ class Othello:
             print(f"DEBUG CONTROLLER: put_stone - Turn changed to: {self.turn}")
             
             self.update_can_put_dots_display()
-            if page: page.update() # pageがNoneでないことを確認
+            # GameView側でターン表示を更新させるため、GameViewインスタンスのメソッドを呼ぶ
+            if hasattr(page, 'current_game_view_instance') and \
+               hasattr(page.current_game_view_instance, 'update_turn_indicator'):
+                page.current_game_view_instance.update_turn_indicator()
+            
+            if page: page.update()
 
             if not self.can_put_area(self.turn):
                 print(f"DEBUG CONTROLLER: put_stone - Next turn ({self.turn}) has no moves. Trying pass.")
@@ -78,9 +80,7 @@ class Othello:
         else:
             print(f"DEBUG CONTROLLER: put_stone - INVALID MOVE ({row}, {column}). Valid: {current_possible_moves}")
 
-
     def can_put_area(self, turn_to_check):
-        # ... (変更なし) ...
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         possible_moves = [] 
         for r_idx in range(BOARD_SIZE):
@@ -103,7 +103,6 @@ class Othello:
         return possible_moves
 
     def flip_area(self, r_start, c_start):
-        # ... (変更なし) ...
         turn_making_move = self.turn
         opponent_color = 3 - turn_making_move
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
@@ -121,17 +120,25 @@ class Othello:
         return stones_to_flip_overall
 
     def flip(self, flip_list, sign):
-        # ... (変更なし) ...
+        print(f"DEBUG CONTROLLER: flip called with sign {sign} for stones: {flip_list}")
+        if not self.white_stones or not self.black_stones or \
+           not all(all(ws_ref and hasattr(ws_ref, 'current') for ws_ref in row_refs) for row_refs in self.white_stones) or \
+           not all(all(bs_ref and hasattr(bs_ref, 'current') for bs_ref in row_refs) for row_refs in self.black_stones):
+            print("DEBUG CONTROLLER: ERROR - stone refs not fully initialized in flip.")
+            return
+
         for row, column in flip_list:
             self.board[row, column] = sign
-            if hasattr(self.white_stones[row][column], 'current') and self.white_stones[row][column].current and \
-               hasattr(self.black_stones[row][column], 'current') and self.black_stones[row][column].current:
-                if sign == 1:
+            if self.white_stones[row][column].current and self.black_stones[row][column].current:
+                if sign == 1: # White
                     self.white_stones[row][column].current.visible = True
                     self.black_stones[row][column].current.visible = False
-                elif sign == 2:
+                elif sign == 2: # Black
                     self.white_stones[row][column].current.visible = False
                     self.black_stones[row][column].current.visible = True
+            else:
+                print(f"DEBUG CONTROLLER: ERROR - Ref not resolved for stone at ({row},{column}) in flip.")
+        print(f"DEBUG CONTROLLER: Board after flip:\n{self.board}")
 
     def ai_move(self, page):
         print(f"DEBUG CONTROLLER: ai_move (random) called for turn {self.turn}")
@@ -151,7 +158,7 @@ class Othello:
             self.put_stone(row, col, page)
             print(f"DEBUG CONTROLLER: ai_move (random) finished for turn {self.turn} (after put_stone)")
     
-    def monte_carlo_ai_move(self, page, num_simulations=50): # シミュレーション回数を減らしてテスト
+    def monte_carlo_ai_move(self, page, num_simulations=50): 
         print(f"DEBUG CONTROLLER: monte_carlo_ai_move called for turn {self.turn}. Sims: {num_simulations}")
         possible_moves = self.can_put_area(self.turn)
         print(f"DEBUG CONTROLLER: AI (Monte Carlo) possible_moves for turn {self.turn}: {possible_moves}")
@@ -181,38 +188,35 @@ class Othello:
 
         if best_move is not None:
             print(f"DEBUG CONTROLLER: AI (Monte Carlo) is putting stone at ({best_move[0]},{best_move[1]})")
-            self.put_stone(best_move[0], best_move[1], page)
+            self.put_stone(best_move[0], best_move[1], page) # この中でターン表示も更新されるはず
             print(f"DEBUG CONTROLLER: monte_carlo_ai_move finished for turn {self.turn} (after put_stone)")
         else:
             print("DEBUG CONTROLLER: AI (Monte Carlo) could not determine a best move. THIS SHOULD NOT HAPPEN if possible_moves is not empty.")
-            # フォールバック (万が一 best_move が None の場合)
             if possible_moves:
                  print("DEBUG CONTROLLER: AI (Monte Carlo) falling back to random move.")
                  row, col = random.choice(possible_moves)
                  self.put_stone(row, col, page)
                  print(f"DEBUG CONTROLLER: monte_carlo_ai_move (fallback) finished for turn {self.turn} (after put_stone)")
-            else: # この状況はありえないはず (possible_movesが空なら上でreturnしている)
+            else: 
                 print("DEBUG CONTROLLER: AI (Monte Carlo) fallback also has no moves. Critical error or game already ended.")
 
-
     def simulate_game_from_move(self, r_sim, c_sim):
-        # ... (変更なし) ...
         sim_board = np.copy(self.board)
-        sim_turn = self.turn
-        self._simulate_put_stone(sim_board, r_sim, c_sim, sim_turn)
-        sim_turn = 3 - sim_turn
-        passes_in_a_row = 0 
+        current_sim_turn = self.turn 
+        self._simulate_put_stone(sim_board, r_sim, c_sim, current_sim_turn)
+        current_sim_turn = 3 - current_sim_turn 
+        passes_in_a_row = 0
         while np.any(sim_board == 0) and passes_in_a_row < 2:
-            can_put_sim = self._simulate_can_put_area(sim_board, sim_turn)
-            if not can_put_sim:
-                sim_turn = 3 - sim_turn
-                passes_in_a_row +=1
+            possible_moves_sim = self._simulate_can_put_area(sim_board, current_sim_turn)
+            if not possible_moves_sim:
+                current_sim_turn = 3 - current_sim_turn
+                passes_in_a_row += 1
                 if passes_in_a_row >= 2: break 
                 continue 
-            passes_in_a_row = 0 
-            move_sim = random.choice(can_put_sim)
-            self._simulate_put_stone(sim_board, move_sim[0], move_sim[1], sim_turn)
-            sim_turn = 3 - sim_turn
+            passes_in_a_row = 0
+            move_sim = random.choice(possible_moves_sim)
+            self._simulate_put_stone(sim_board, move_sim[0], move_sim[1], current_sim_turn)
+            current_sim_turn = 3 - current_sim_turn
         white_count = np.sum(sim_board == 1)
         black_count = np.sum(sim_board == 2)
         if self.turn == 1: 
@@ -226,7 +230,6 @@ class Othello:
         return 0 
         
     def _simulate_put_stone(self, board_s, r_s, c_s, turn_s):
-        # ... (変更なし) ...
         opponent_s = 3 - turn_s
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         board_s[r_s, c_s] = turn_s
@@ -242,7 +245,6 @@ class Othello:
                     board_s[r_f, c_f] = turn_s
 
     def _simulate_can_put_area(self, board_s, turn_s):
-        # ... (変更なし) ...
         opponent_s = 3 - turn_s
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         possible_moves_s = []
@@ -264,37 +266,43 @@ class Othello:
                         possible_moves_s.append((r_idx_s, c_idx_s))
         return possible_moves_s
     
-    def try_pass(self, page):
+    def try_pass(self, page_arg_ctrl): # 引数名を page -> page_arg_ctrl に統一
         current_turn_before_pass = self.turn
         print(f"DEBUG CONTROLLER: try_pass called for turn {current_turn_before_pass}")
         
         if not self.can_put_area(current_turn_before_pass): 
             current_player_name = "白" if current_turn_before_pass == 1 else "黒"
-            print(f"{current_player_name}の番: 置ける場所がないためパスします。") # ユーザー向けメッセージ
+            print(f"{current_player_name}の番: 置ける場所がないためパスします。")
             
             self.turn = 3 - current_turn_before_pass  
             print(f"DEBUG CONTROLLER: Turn changed to {self.turn} after {current_player_name}'s pass.")
             
             self.update_can_put_dots_display() 
-            if page: page.update()
+            
+            # ★★★ GameView側のターン表示も更新 ★★★
+            if hasattr(page_arg_ctrl, 'current_game_view_instance') and \
+               hasattr(page_arg_ctrl.current_game_view_instance, 'update_turn_indicator'):
+                print("DEBUG CONTROLLER: Calling game_view.update_turn_indicator() from try_pass")
+                page_arg_ctrl.current_game_view_instance.update_turn_indicator()
+            else:
+                print("DEBUG CONTROLLER: Could not call game_view.update_turn_indicator() from try_pass")
 
-            # 交代後の相手も置けないか確認
+            if page_arg_ctrl: page_arg_ctrl.update()
+
             if not self.can_put_area(self.turn):
                 next_player_name = "白" if self.turn == 1 else "黒"
-                print(f"{next_player_name}も置けません。両者ともパスとなり、ゲーム終了です。") # ユーザー向けメッセージ
-                self.end_game(page) 
-            # else:
-                # print(f"DEBUG CONTROLLER: Next player (turn {self.turn}) has moves. Game continues.")
+                print(f"{next_player_name}も置けません。両者ともパスとなり、ゲーム終了です。")
+                self.end_game(page_arg_ctrl) 
             return True  
         
-        # print(f"DEBUG CONTROLLER: try_pass - turn {current_turn_before_pass} can still put. No pass.")
         return False 
     
     def end_game(self, page_arg_ctrl):
-        # ... (変更なし、前回の提案通り) ...
         white_count = np.sum(self.board == 1)
         black_count = np.sum(self.board == 2)
+        
         print(f"DEBUG CONTROLLER: end_game called. White: {white_count}, Black: {black_count}. Page ID: {id(page_arg_ctrl)}")
+
         if hasattr(page_arg_ctrl, 'current_game_view_instance'):
             current_view_instance = page_arg_ctrl.current_game_view_instance
             if hasattr(current_view_instance, 'show_result_ui') and callable(getattr(current_view_instance, 'show_result_ui')):
@@ -304,8 +312,8 @@ class Othello:
                 print(f"DEBUG CONTROLLER: current_game_view_instance.show_result_ui not found or not callable.")
         else:
             print(f"DEBUG CONTROLLER: page_arg_ctrl.current_game_view_instance not found.")
-        # フォールバックとしてのコンソール出力
-        print(f"ゲーム終了！ 白: {white_count}  黒: {black_count}")
+        
+        print(f"ゲーム終了！ 白: {white_count}  黒: {black_count}") 
         if white_count > black_count: print("白の勝ち！")
         elif black_count > white_count: print("黒の勝ち！")
         else: print("引き分け！")
