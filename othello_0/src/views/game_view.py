@@ -63,7 +63,7 @@ class GameView(ft.View):
                     spacing=20,
                 ),
                 alignment=ft.alignment.center, expand=True,
-                bgcolor="#80000000", # 黒の85%不透明
+                bgcolor="#80000000", # 黒の80%不透明
                 visible=False, 
             )
 
@@ -200,13 +200,13 @@ class GameView(ft.View):
         current_page = self.page_ref
         board_length = current_page.height * 0.8 
         grid_size = board_length / BOARD_SIZE
-        container = ft.Container(height=current_page.height, width=current_page.width, bgcolor="#7decff")
-        board_container = ft.Container(height=board_length + 1, width=board_length + 1, bgcolor="#8c00ff")
-        board_green = ft.Container(height=board_length + 1, width=board_length + 1, bgcolor='#30AD30')
-        board_shade = ft.Container(height=board_length, width=board_length, bgcolor='#404040', top=0, left=0)
-        board_vertical_lines = [ft.Container(height=board_length, width=1, bgcolor='#000000', top=0, left=i * grid_size) for i in range(BOARD_SIZE + 1)]
-        board_horizontal_lines = [ft.Container(height=1, width=board_length, bgcolor='#000000', top=i * grid_size, left=0) for i in range(BOARD_SIZE + 1)]
-        dots = [ft.Container(height=5, width=5, bgcolor='#000000', top=i * grid_size - 2, left=j * grid_size - 2, border_radius=5) for i in [BOARD_SIZE//3, BOARD_SIZE*2//3] for j in [BOARD_SIZE//3, BOARD_SIZE*2//3]]
+        container = ft.Container(height=current_page.height, width=current_page.width, bgcolor="#77e0d9")
+        board_container = ft.Container(height=board_length + 20, width=board_length + 20)
+        board_green = ft.Container(height=board_length + 2, width=board_length + 2, bgcolor='#299643')
+        board_shade = ft.Container(height=board_length + 20, width=board_length + 20, bgcolor="#B36C3E", top=0, left=0, border_radius=10)
+        board_vertical_lines = [ft.Container(height=board_length+2, width=2, bgcolor='#000000', top=0, left=i * grid_size) for i in range(BOARD_SIZE + 1)]
+        board_horizontal_lines = [ft.Container(height=2, width=board_length+2, bgcolor='#000000', top=i * grid_size, left=0) for i in range(BOARD_SIZE + 1)]
+        dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=5) for i in [BOARD_SIZE//3, BOARD_SIZE*2//3] for j in [BOARD_SIZE//3, BOARD_SIZE*2//3]]
         white_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
         white_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
         white_discs = [ft.Stack(controls=[white_disc_back, white_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.white_stones[row][column]) for row in range(BOARD_SIZE) for column in range(BOARD_SIZE)]
@@ -228,8 +228,9 @@ class GameView(ft.View):
             for column in range(BOARD_SIZE):
                 dot = ft.Container(height=grid_size * 2 / 10, width=grid_size * 2 / 10, bgcolor="#FFF671", border_radius=grid_size * 1 / 10, top=grid_size * row + grid_size * 4 / 10, left=grid_size * column + grid_size * 4 / 10, visible=False, ref=self.can_put_dots[row][column])
                 can_put_dots_list.append(dot)
-        othello = ft.Stack(controls=[board_container, board_shade, board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list])
-        stack = ft.Stack(controls=[container, othello], alignment=ft.alignment.center)
+        othello = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=10, left=10)
+        othello_stack = ft.Stack(controls=[board_container, board_shade, othello])
+        stack = ft.Stack(controls=[container, othello_stack], alignment=ft.alignment.center)
         return stack
     
     def handle_player_move(self, r, c):

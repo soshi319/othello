@@ -1,5 +1,8 @@
 Traceback (most recent call last):
-  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 31, in __init__
-    self.game = Othello(ai_player_number=ai_player_number_for_ctrl)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: Othello.__init__() missing 3 required positional arguments: 'white_stones', 'black_stones', and 'can_put_dots'
+  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 93, in __init__
+    othello_board_ui = self.makeOthelloBoard() # page_argを渡す必要がなくなりました
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 206, in makeOthelloBoard
+    board_shade = ft.Container(height=board_length + 20, width=board_length + 20, bgcolor="#B8664E", top=0, left=0, radius=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Container.__init__() got an unexpected keyword argument 'radius'
