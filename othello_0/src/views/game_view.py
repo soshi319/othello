@@ -6,6 +6,19 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import flet as ft # type: ignore
 
 from settings import BOARD_SIZE
+# ▼ 難易度／手番ごとのアイコン（assets フォルダに置く）
+DIFFICULTY_ICONS = {
+    "easy":   "/level_easy.png",
+    "normal": "/level_normal.png",
+    "hard":   "/level_hard.png",
+    "master": "/level_master.png",
+}
+
+TURN_ICONS = {
+    "black": "/turn_black.png",   # 先手（黒）
+    "white": "/turn_white.png",   # 後手（白）
+}
+
 
 from controller.othello_controller import Othello
 from data.white_stones import WhiteStones
@@ -26,6 +39,8 @@ class GameView(ft.View):
             
             self.player_color = getattr(page_arg, "player_color", "black")
             self.ai_color = "white" if self.player_color == "black" else "black"
+            
+            self.level = getattr(page_arg, "level", "easy")   # ← 追加
 
             ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
             self.ai_player_number = ai_player_number_for_ctrl  # または適切な値
@@ -43,15 +58,29 @@ class GameView(ft.View):
             
             self.result_text_control = ft.Text("結果計算中...", size=30, weight=ft.FontWeight.BOLD, color="#FFFFFF")
             self.result_score_control = ft.Text("白: 0  黒: 0", size=24, color="#FFFFFF")
+            self.result_difficulty_icon = ft.Image(
+                src=DIFFICULTY_ICONS.get(self.level, DIFFICULTY_ICONS["easy"]),
+                width=200, height=60, fit=ft.ImageFit.CONTAIN
+            )
+            self.result_turn_icon = ft.Image(
+                src=TURN_ICONS.get(self.player_color, TURN_ICONS["black"]),
+                width=60, height=60, fit=ft.ImageFit.CONTAIN
+            )
+            
             self.result_overlay = ft.Container(
                 content=ft.Column(
                     [
                         self.result_text_control,
                         self.result_score_control,
+                        ft.Row(
+                            controls=[self.result_difficulty_icon, self.result_turn_icon],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=10,
+                        ),
                         ft.ElevatedButton(
                             "タイトルへ戻る",
                             on_click=self.go_to_title, # page_argを渡す必要がなくなりました
-                            bgcolor="#4A5568", 
+                            bgcolor="#4A5568",
                             color="#FFFFFF",
                             width=200,
                             height=50,
@@ -81,6 +110,24 @@ class GameView(ft.View):
                 fit=ft.ImageFit.CONTAIN,
                 visible=False
             )
+            
+            self.difficulty_game_icon = ft.Image(
+                src=DIFFICULTY_ICONS.get(self.level, DIFFICULTY_ICONS["easy"]),
+                width=300, height=90, fit=ft.ImageFit.CONTAIN
+            )
+            self.turn_game_icon = ft.Image(
+                src=TURN_ICONS.get(self.player_color, TURN_ICONS["black"]),
+                width=90, height=90, fit=ft.ImageFit.CONTAIN
+            )
+            self.info_container = ft.Container(
+                content=ft.Column(
+                    controls=[self.difficulty_game_icon, self.turn_game_icon],
+                    spacing=8,
+                    alignment=ft.MainAxisAlignment.START,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                right=20, top=20,               # 画面右上
+            )
 
             self.turn_indicator_container = ft.Container(
                 content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
@@ -100,7 +147,8 @@ class GameView(ft.View):
             
             self.main_stack_controls = [
                 othello_board_ui,
-                self.turn_indicator_container, 
+                self.turn_indicator_container,
+                self.info_container,
                 self.start_button_container,
                 self.result_overlay 
             ]
