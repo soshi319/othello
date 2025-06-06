@@ -310,9 +310,8 @@ class Othello:
                         possible_moves_s.append((r_idx_s, c_idx_s))
         return possible_moves_s
     
-        # ============================================================
-    #  ▼ 強化 CPU: α–β 探索 (Negamax) 実装  ▼
     # ============================================================
+
 
     # 位置評価用の 6×6 重み表（角 > 辺 > 中央 のシンプル版）
     _WEIGHTS_6x6 = np.array([
@@ -405,6 +404,71 @@ class Othello:
         # 着手実行
         if best_move is not None:
             self.put_stone(best_move[0], best_move[1], page)
+            
+    #---------------------------------------------------------------------------------
+    def _disc_diff(self, board_td, turn_td):
+        my  = np.sum(board_td == turn_td)
+        opp = np.sum(board_td == 3 - turn_td)
+        return my - opp
+
+    # ---------- 終盤 Negamax（評価値なし） ----------
+    def _negamax_terminal(self, board_nt, turn_nt,
+                          passes=0, alpha=-64, beta=64):
+        moves = self._simulate_can_put_area(board_nt, turn_nt)
+
+        if not moves:
+            # 連続２パスで終局
+            if passes == 1:
+                return self._disc_diff(board_nt, turn_nt)
+            return -self._negamax_terminal(board_nt, 3 - turn_nt,
+                                           passes + 1, -beta, -alpha)
+
+        best = -64
+        for r, c in moves:
+            child = self._clone_after_move_static(board_nt, r, c, turn_nt)
+            val = -self._negamax_terminal(child, 3 - turn_nt,
+                                           0, -beta, -alpha)
+            best = max(best, val)
+            alpha = max(alpha, val)
+            if alpha >= beta:               # βカット
+                break
+        return best
+
+    # ---------- 公開：終盤 Negamax １手進める ----------
+    def endgame_negamax_ai_move(self, page):
+        possible = self.can_put_area(self.turn)
+        if not possible:
+            self.try_pass(page)
+            return
+
+        best_val, best_move = -64, None
+        for r, c in possible:
+            child = self._clone_after_move_static(self.board, r, c, self.turn)
+            val = -self._negamax_terminal(child, 3 - self.turn)
+            if val > best_val:
+                best_val, best_move = val, (r, c)
+
+        self.put_stone(best_move[0], best_move[1], page)
+
+        # AI の手数カウント
+        if self.ai_player_number is not None and self.turn != self.ai_player_number:
+            self.ai_move_count += 1
+
+    # ---------- ハイブリッド AI ----------
+    def hybrid_ai_move(self, page, depth=7, switch_ai_moves=11):
+        """
+        AI が switch_ai_moves (既定11) 手を打つまでは α–β 探索、
+        12 手目以降は終局まで Negamax。
+        """
+        if self.ai_move_count <= switch_ai_moves:
+            # 既存 α–β
+            self.alpha_beta_ai_move(page, depth)
+        else:
+            # 終盤 Negamax
+            self.endgame_negamax_ai_move(page)
+
+    
+    #---------------------------------------------------------------------------------
 
     
     def try_pass(self, page_arg_ctrl):

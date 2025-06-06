@@ -12,6 +12,7 @@ DIFFICULTY_ICONS = {
     "normal": "/level_normal.png",
     "hard":   "/level_hard.png",
     "master": "/level_master.png",
+    "oni":    "/level_oni.png",
 }
 
 TURN_ICONS = {
@@ -232,7 +233,8 @@ class GameView(ft.View):
             if level == "easy": self.game.ai_move(current_page)
             elif level == "normal": self.game.monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "hard": self.game.upgraded_monte_carlo_ai_move(current_page, num_simulations=500)
-            elif level == "master": self.game.alpha_beta_ai_move(current_page)
+            elif level == "master": self.game.alpha_beta_ai_move(current_page, depth=7)
+            elif level == "oni": self.game.hybrid_ai_move(current_page, depth=7, switch_ai_moves=11)
             
             print(f"DEBUG VIEW: AI logic call finished. Current game turn: {self.game.turn}")
             # AIが手を打った（またはパスした）後、コントローラ側でヒント更新とターン表示更新が行われる

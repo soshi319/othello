@@ -68,6 +68,19 @@ class SelectLevelView(ft.View):
                                         text_style=ft.TextStyle(size=40, weight=ft.FontWeight.BOLD),
                                     ),
                                 ),
+                                ft.ElevatedButton(
+                                    "鬼",
+                                    on_click=lambda _: (page.__setattr__("level", "oni"), page.go("/select_turn")),
+                                    width=10, height=10,
+                                    style=ft.ButtonStyle(
+                                        bgcolor="#000000",
+                                        color="#999999",
+                                        overlay_color="#d80000",  # ← 濃い水色（hover時）
+                                        padding=20,
+                                        shape=ft.RoundedRectangleBorder(radius=10),
+                                        text_style=ft.TextStyle(size=10, weight=ft.FontWeight.BOLD),
+                                    ),
+                                ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
                             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
