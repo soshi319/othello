@@ -231,7 +231,7 @@ class GameView(ft.View):
             # AIの思考ルーチン呼び出し
             if level == "easy": self.game.ai_move(current_page)
             elif level == "normal": self.game.monte_carlo_ai_move(current_page, num_simulations=100)
-            elif level == "hard": self.game.monte_carlo_ai_move(current_page, num_simulations=500)
+            elif level == "hard": self.game.upgraded_monte_carlo_ai_move(current_page, num_simulations=500)
             elif level == "master": self.game.alpha_beta_ai_move(current_page)
             
             print(f"DEBUG VIEW: AI logic call finished. Current game turn: {self.game.turn}")

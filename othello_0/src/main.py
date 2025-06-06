@@ -50,4 +50,4 @@ def main(page: ft.Page):
   page.go(page.route)
 
 
-ft.app(main)
+ft.app(target=main, assets_dir="assets")

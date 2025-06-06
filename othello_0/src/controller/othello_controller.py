@@ -22,6 +22,7 @@ class Othello:
         self.can_put_dots = can_put_dots
         self.turn = 2
         self.ai_player_number = ai_player_number
+        self.ai_move_count = 0 
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")
 
     def start_game(self):
@@ -159,6 +160,47 @@ class Othello:
             print(f"DEBUG CONTROLLER: AI (random) chose ({row},{col})")
             self.put_stone(row, col, page)
             print(f"DEBUG CONTROLLER: ai_move (random) finished for turn {self.turn} (after put_stone)")
+    
+    def upgraded_monte_carlo_ai_move(self, page, num_simulations=50):
+        """
+        Monte-Carlo 法で着手を選ぶ。
+        ただし AI の着手数が 5 手未満の間は X マス
+          [(1,1),(1,4),(4,1),(4,4)] を候補から除外する。
+        """
+        possible_moves = self.can_put_area(self.turn)
+        if not possible_moves:
+            if self.try_pass(page):
+                return
+            return
+        
+        if self.ai_move_count < 5:                         # 「5 回以内」判定
+            x_squares = {(1, 1), (1, BOARD_SIZE-2),
+                         (BOARD_SIZE-2, 1), (BOARD_SIZE-2, BOARD_SIZE-2)}
+            filtered = [mv for mv in possible_moves if mv not in x_squares]
+            if filtered:                                   # X 以外にも手があるときだけ制限
+                possible_moves = filtered
+
+        best_winrate, best_move = -1, None
+        for r, c in possible_moves:
+            win = 0
+            for _ in range(num_simulations):
+                if self.simulate_game_from_move(r, c) == self.turn:
+                    win += 1
+            winrate = win / num_simulations
+            if winrate > best_winrate:
+                best_winrate, best_move = winrate, (r, c)
+
+        if best_move is None:
+            # 念のため（あり得ないはずだが念押しで）
+            best_move = random.choice(possible_moves)
+
+        self.put_stone(best_move[0], best_move[1], page)
+
+        if self.ai_player_number == self.turn:
+            pass
+        else:
+            self.ai_move_count += 1
+
     
     def monte_carlo_ai_move(self, page, num_simulations=50): 
         print(f"DEBUG CONTROLLER: monte_carlo_ai_move called for turn {self.turn}. Sims: {num_simulations}")
