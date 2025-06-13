@@ -1,5 +1,4 @@
-# othello_controller.py (BOARD_SIZE=8 対応版)
-import numpy as np
+# othello_controller.py (BOARD_SIZE=8 対応・numpy未使用版)
 import random
 import time
 
@@ -10,18 +9,18 @@ from data.white_stones import WhiteStones
 from data.can_put_dots import CanPutDots
 
 class Othello:
-    # --- (変更点 1) 8x8盤用の評価テーブルを追加 ---
+    # --- (変更点 1) 8x8盤用の評価テーブルをリストで定義 ---
     # 位置評価用の 6×6 重み表
-    _WEIGHTS_6x6 = np.array([
+    _WEIGHTS_6x6 = [
         [100, -20,  10,  10, -20, 100],
         [-20, -50,  -2,  -2, -50, -20],
         [ 10,  -2,   5,   5,  -2,  10],
         [ 10,  -2,   5,   5,  -2,  10],
         [-20, -50,  -2,  -2, -50, -20],
         [100, -20,  10,  10, -20, 100],
-    ])
+    ]
     # 位置評価用の 8×8 重み表 (標準的なもの)
-    _WEIGHTS_8x8 = np.array([
+    _WEIGHTS_8x8 = [
         [120, -20,  20,   5,   5,  20, -20, 120],
         [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
         [ 20,  -5,  15,   3,   3,  15,  -5,  20],
@@ -30,15 +29,15 @@ class Othello:
         [ 20,  -5,  15,   3,   3,  15,  -5,  20],
         [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
         [120, -20,  20,   5,   5,  20, -20, 120],
-    ])
+    ]
     # -------------------------------------------
 
     def __init__(self, white_stones, black_stones, can_put_dots, ai_player_number=None):
         import settings
-        self.board = np.zeros((settings.BOARD_SIZE, settings.BOARD_SIZE), dtype=int)
+        self.board = [[0] * settings.BOARD_SIZE for _ in range(settings.BOARD_SIZE)]
         c = settings.BOARD_SIZE // 2
-        self.board[c-1, c-1] = 1; self.board[c, c] = 1
-        self.board[c-1, c] = 2; self.board[c, c-1] = 2
+        self.board[c-1][c-1] = 1; self.board[c][c] = 1
+        self.board[c-1][c] = 2; self.board[c][c-1] = 2
         # 外から受け取ったRefで管理
         self.white_stones = white_stones
         self.black_stones = black_stones
@@ -54,7 +53,7 @@ class Othello:
             self.weights = self._WEIGHTS_6x6
         else:
             # サポート外のサイズでは位置評価を無効化 (ゼロ行列)
-            self.weights = np.zeros((settings.BOARD_SIZE, settings.BOARD_SIZE))
+            self.weights = [[0] * settings.BOARD_SIZE for _ in range(settings.BOARD_SIZE)]
         # ----------------------------------------------------
 
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")
@@ -122,17 +121,17 @@ class Othello:
         possible_moves = [] 
         for r_idx in range(settings.BOARD_SIZE):
             for c_idx in range(settings.BOARD_SIZE):
-                if self.board[r_idx, c_idx] == 0: 
+                if self.board[r_idx][c_idx] == 0: 
                     can_place_here = False
                     opponent_color = 3 - turn_to_check
                     for dr, dc in directions:
                         stones_in_between = []
                         curr_r, curr_c = r_idx + dr, c_idx + dc
-                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
+                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r][curr_c] == opponent_color:
                             stones_in_between.append((curr_r, curr_c))
                             curr_r += dr
                             curr_c += dc
-                        if stones_in_between and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == turn_to_check:
+                        if stones_in_between and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r][curr_c] == turn_to_check:
                             can_place_here = True
                             break 
                     if can_place_here:
@@ -148,11 +147,11 @@ class Othello:
         for dr, dc in directions:
             current_line_flips = []
             curr_r, curr_c = r_start + dr, c_start + dc
-            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
+            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r][curr_c] == opponent_color:
                 current_line_flips.append((curr_r, curr_c))
                 curr_r += dr
                 curr_c += dc
-            if current_line_flips and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == turn_making_move:
+            if current_line_flips and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r][curr_c] == turn_making_move:
                 stones_to_flip_overall.extend(current_line_flips)
         return stones_to_flip_overall
 
@@ -165,7 +164,7 @@ class Othello:
             return
 
         for row, column in flip_list:
-            self.board[row, column] = sign
+            self.board[row][column] = sign
             if self.white_stones[row][column].current and self.black_stones[row][column].current:
                 if sign == 1: # White
                     self.white_stones[row][column].current.visible = True
@@ -278,12 +277,12 @@ class Othello:
                 print("DEBUG CONTROLLER: AI (Monte Carlo) fallback also has no moves. Critical error or game already ended.")
 
     def simulate_game_from_move(self, r_sim, c_sim):
-        sim_board = np.copy(self.board)
+        sim_board = [row[:] for row in self.board] # numpy.copy -> list copy
         current_sim_turn = self.turn 
         self._simulate_put_stone(sim_board, r_sim, c_sim, current_sim_turn)
         current_sim_turn = 3 - current_sim_turn 
         passes_in_a_row = 0
-        while np.any(sim_board == 0) and passes_in_a_row < 2:
+        while any(0 in row for row in sim_board) and passes_in_a_row < 2: # np.any
             possible_moves_sim = self._simulate_can_put_area(sim_board, current_sim_turn)
             if not possible_moves_sim:
                 current_sim_turn = 3 - current_sim_turn
@@ -294,8 +293,8 @@ class Othello:
             move_sim = random.choice(possible_moves_sim)
             self._simulate_put_stone(sim_board, move_sim[0], move_sim[1], current_sim_turn)
             current_sim_turn = 3 - current_sim_turn
-        white_count = np.sum(sim_board == 1)
-        black_count = np.sum(sim_board == 2)
+        white_count = sum(row.count(1) for row in sim_board) # np.sum
+        black_count = sum(row.count(2) for row in sim_board) # np.sum
         if self.turn == 1: 
             if white_count > black_count: return 1 
             elif black_count > white_count: return 2 
@@ -309,17 +308,17 @@ class Othello:
     def _simulate_put_stone(self, board_s, r_s, c_s, turn_s):
         opponent_s = 3 - turn_s
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
-        board_s[r_s, c_s] = turn_s
+        board_s[r_s][c_s] = turn_s
         for dr_s, dc_s in directions:
             stones_to_flip_in_line = []
             curr_r, curr_c = r_s + dr_s, c_s + dc_s
-            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
+            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r][curr_c] == opponent_s:
                 stones_to_flip_in_line.append((curr_r, curr_c))
                 curr_r += dr_s
                 curr_c += dc_s
-            if stones_to_flip_in_line and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
+            if stones_to_flip_in_line and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r][curr_c] == turn_s:
                 for r_f, c_f in stones_to_flip_in_line:
-                    board_s[r_f, c_f] = turn_s
+                    board_s[r_f][c_f] = turn_s
 
     def _simulate_can_put_area(self, board_s, turn_s):
         opponent_s = 3 - turn_s
@@ -327,16 +326,16 @@ class Othello:
         possible_moves_s = []
         for r_idx_s in range(settings.BOARD_SIZE):
             for c_idx_s in range(settings.BOARD_SIZE):
-                if board_s[r_idx_s, c_idx_s] == 0:
+                if board_s[r_idx_s][c_idx_s] == 0:
                     can_place_here_s = False
                     for dr_s, dc_s in directions:
                         stones_in_between_s = []
                         curr_r, curr_c = r_idx_s + dr_s, c_idx_s + dc_s
-                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
+                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r][curr_c] == opponent_s:
                             stones_in_between_s.append((curr_r, curr_c))
                             curr_r += dr_s
                             curr_c += dc_s
-                        if stones_in_between_s and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
+                        if stones_in_between_s and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r][curr_c] == turn_s:
                             can_place_here_s = True
                             break
                     if can_place_here_s:
@@ -345,7 +344,7 @@ class Othello:
     
     # ============================================================
 
-    # --- (変更点 3) 静的評価関数を self.weights を使うように修正 ---
+    # --- (変更点 3) 静的評価関数を self.weights を使うように修正 (numpy未使用) ---
     def _evaluate_static(self, board_sta, turn_sta):
         """
         位置重み + モビリティ差の評価値を返す。
@@ -354,8 +353,14 @@ class Othello:
         opp = 3 - turn_sta
 
         # --- 位置重み (初期化時に選択された self.weights を使用) ---
-        my_score  = np.sum(self.weights[board_sta == turn_sta])
-        opp_score = np.sum(self.weights[board_sta == opp])
+        my_score = 0
+        opp_score = 0
+        for r in range(settings.BOARD_SIZE):
+            for c in range(settings.BOARD_SIZE):
+                if board_sta[r][c] == turn_sta:
+                    my_score += self.weights[r][c]
+                elif board_sta[r][c] == opp:
+                    opp_score += self.weights[r][c]
         pos_score = my_score - opp_score
 
         # --- モビリティ（合法手数差）----------------------------------
@@ -369,7 +374,7 @@ class Othello:
 
     def _clone_after_move_static(self, board_sta, r_sta, c_sta, turn_sta):
         """board_sta をコピーし (r,c) へ turn_sta が打った盤面を返す."""
-        new_brd = np.copy(board_sta)
+        new_brd = [row[:] for row in board_sta] # numpy.copy -> list copy
         self._simulate_put_stone(new_brd, r_sta, c_sta, turn_sta)
         return new_brd
 
@@ -422,8 +427,8 @@ class Othello:
             
     #---------------------------------------------------------------------------------
     def _disc_diff(self, board_td, turn_td):
-        my  = np.sum(board_td == turn_td)
-        opp = np.sum(board_td == 3 - turn_td)
+        my  = sum(row.count(turn_td) for row in board_td) # np.sum
+        opp = sum(row.count(3 - turn_td) for row in board_td) # np.sum
         return my - opp
 
     # --- (変更点 4) 終盤探索の評価値の初期値を BOARD_SIZE に応じて変更 ---
@@ -529,8 +534,8 @@ class Othello:
         return False 
     
     def end_game(self, page_arg_ctrl):
-        white_count = np.sum(self.board == 1)
-        black_count = np.sum(self.board == 2)
+        white_count = sum(row.count(1) for row in self.board) # np.sum
+        black_count = sum(row.count(2) for row in self.board) # np.sum
         
         print(f"DEBUG CONTROLLER: end_game called. White: {white_count}, Black: {black_count}. Page ID: {id(page_arg_ctrl)}")
 
