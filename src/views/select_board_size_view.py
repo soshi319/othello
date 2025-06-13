@@ -6,6 +6,7 @@ class SelectBoardSizeView(ft.View):
     def __init__(self, page: ft.Page, route: str):
         self.page = page
 
+        # ボタンのスタイル定義（変更なし）
         style_6x6 = ft.ButtonStyle(
             bgcolor="#4CAF50",
             color="#FFFFFF",
@@ -26,11 +27,13 @@ class SelectBoardSizeView(ft.View):
             [
                 ft.Stack(
                     controls=[
+                        # レイヤー1：背景
                         ft.Image(
                             src="/select_board_size.png",
                             expand=True,
                             fit=ft.ImageFit.COVER,
                         ),
+                        # レイヤー2：中央揃えのコンテンツ
                         ft.Container(
                             content=ft.Column(
                                 controls=[

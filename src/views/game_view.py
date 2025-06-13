@@ -158,10 +158,11 @@ class GameView(ft.View):
                 route,
                 [
                     ft.Stack(
-                        controls=self.main_stack_controls,
-                        expand=True
+                        controls=self.main_stack_controls
                     )
-                ]
+                ],
+                vertical_alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         except Exception as e:
             with open("gameview_error.txt", "w", encoding="utf-8") as f:

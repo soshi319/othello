@@ -4,6 +4,7 @@ class SelectLevelView(ft.View):
     def __init__(self, page, route):
         self.page = page
 
+        # ボタンのスタイル定義（これは変更なし）
         style_master = ft.ButtonStyle(
             bgcolor="#f7a0c0", color="#FFFFFF", overlay_color="#e6578b",
             padding=20, shape=ft.RoundedRectangleBorder(radius=10)
@@ -30,12 +31,18 @@ class SelectLevelView(ft.View):
             [
                 ft.Stack(
                     controls=[
+                        # --- レイヤー1：背景 ---
+                        # expand=TrueでStack全体に広がる背景画像
                         ft.Image(
                             src="/select_level.png",
                             expand=True,
                             fit=ft.ImageFit.COVER
                         ),
+
+                        # --- レイヤー2：中央揃えのコンテンツ ---
+                        # このContainerもexpand=TrueでStack全体に広がる
                         ft.Container(
+                            # この中のColumnが中央に配置される
                             content=ft.Column(
                                 controls=[
                                     ft.ElevatedButton(
@@ -64,15 +71,16 @@ class SelectLevelView(ft.View):
                                         width=10, height=10, style=style_oni,
                                     ),
                                 ],
+                                # Column自体の内部での配置設定
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 spacing=30,
-                                expand=False,
                             ),
+                            # Containerの機能で、content(Column)を中央に配置
                             alignment=ft.alignment.center,
-                            expand=True
+                            expand=True,
                         ),
-                    ],
+                    ]
                 )
             ]
         )
