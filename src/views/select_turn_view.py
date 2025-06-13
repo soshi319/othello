@@ -23,31 +23,33 @@ class SelectTurnView(ft.View):
                             expand=True,
                             fit=ft.ImageFit.COVER
                         ),
-                        ft.Row(
-                            controls=[
-                                ft.ElevatedButton(
-                                    content=ft.Text("先攻（黒）でプレイ", size=36, weight=ft.FontWeight.BOLD),
-                                    width=page.width * 0.4, height=page.width * 0.4,
-                                    on_click=lambda _: (page.__setattr__("player_color", "black"), page.go("/othello")),
-                                    opacity=0,
-                                    style=style_black,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("後攻（白）でプレイ", size=36, weight=ft.FontWeight.BOLD),
-                                    width=page.width * 0.4, height=page.width * 0.4,
-                                    on_click=lambda _: (page.__setattr__("player_color", "white"), page.go("/othello")),
-                                    opacity=0,
-                                    style=style_white,
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=100,
-                            expand=False,
+                        ft.Container(
+                            content=ft.Row(
+                                controls=[
+                                    ft.ElevatedButton(
+                                        content=ft.Text("先攻（黒）でプレイ", size=36, weight=ft.FontWeight.BOLD),
+                                        width=page.width * 0.4, height=page.width * 0.4,
+                                        on_click=lambda _: (page.__setattr__("player_color", "black"), page.go("/othello")),
+                                        opacity=0,
+                                        style=style_black,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("後攻（白）でプレイ", size=36, weight=ft.FontWeight.BOLD),
+                                        width=page.width * 0.4, height=page.width * 0.4,
+                                        on_click=lambda _: (page.__setattr__("player_color", "white"), page.go("/othello")),
+                                        opacity=0,
+                                        style=style_white,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                spacing=100,
+                                expand=False,
+                            ),
+                            alignment=ft.alignment.center,
+                            expand=True
                         ),
                     ],
                 )
-            ],
-            vertical_alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ]
         )

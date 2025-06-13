@@ -35,42 +35,44 @@ class SelectLevelView(ft.View):
                             expand=True,
                             fit=ft.ImageFit.COVER
                         ),
-                        ft.Column(
-                            controls=[
-                                ft.ElevatedButton(
-                                    content=ft.Text("マスター", size=40, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: (page.__setattr__("level", "master"), page.go("/select_turn")),
-                                    width=300, height=130, style=style_master,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("むずかしい", size=40, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: (page.__setattr__("level", "hard"), page.go("/select_turn")),
-                                    width=300, height=130, style=style_hard,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("ふつう", size=40, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: (page.__setattr__("level", "normal"), page.go("/select_turn")),
-                                    width=300, height=130, style=style_normal,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("かんたん", size=40, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: (page.__setattr__("level", "easy"), page.go("/select_turn")),
-                                    width=300, height=130, style=style_easy,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("鬼", size=10, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: (page.__setattr__("level", "oni"), page.go("/select_turn")),
-                                    width=10, height=10, style=style_oni,
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=30,
-                            expand=False,
+                        ft.Container(
+                            content=ft.Column(
+                                controls=[
+                                    ft.ElevatedButton(
+                                        content=ft.Text("マスター", size=40, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: (page.__setattr__("level", "master"), page.go("/select_turn")),
+                                        width=300, height=130, style=style_master,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("むずかしい", size=40, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: (page.__setattr__("level", "hard"), page.go("/select_turn")),
+                                        width=300, height=130, style=style_hard,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("ふつう", size=40, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: (page.__setattr__("level", "normal"), page.go("/select_turn")),
+                                        width=300, height=130, style=style_normal,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("かんたん", size=40, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: (page.__setattr__("level", "easy"), page.go("/select_turn")),
+                                        width=300, height=130, style=style_easy,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("鬼", size=10, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: (page.__setattr__("level", "oni"), page.go("/select_turn")),
+                                        width=10, height=10, style=style_oni,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                spacing=30,
+                                expand=False,
+                            ),
+                            alignment=ft.alignment.center,
+                            expand=True
                         ),
                     ],
                 )
-            ],
-            vertical_alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ]
         )

@@ -22,17 +22,21 @@ class TitleView(ft.View):
               expand=True,
               fit=ft.ImageFit.COVER
             ),
-            ft.ElevatedButton(
-              content=ft.Text("START", size=40, weight=ft.FontWeight.BOLD),
-              width=page.width * 0.2,
-              height=page.height * 0.15,
-              on_click=lambda _: page.go("/select_board_size"),
+            # ボタンをContainerでラップして中央揃えを実現
+            ft.Container(
+              content=ft.ElevatedButton(
+                content=ft.Text("START", size=40, weight=ft.FontWeight.BOLD),
+                width=page.width * 0.2,
+                height=page.height * 0.15,
+                on_click=lambda _: page.go("/select_board_size"),
+                style=start_button_style,
+              ),
               bottom=page.height * 0.25,
-              style=start_button_style,
+              left=0,
+              right=0,
+              alignment=ft.alignment.center
             ),
           ],
         )
-      ],
-      vertical_alignment=ft.MainAxisAlignment.CENTER,
-      horizontal_alignment=ft.CrossAxisAlignment.CENTER
+      ]
     )

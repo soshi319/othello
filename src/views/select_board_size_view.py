@@ -31,32 +31,34 @@ class SelectBoardSizeView(ft.View):
                             expand=True,
                             fit=ft.ImageFit.COVER,
                         ),
-                        ft.Column(
-                            controls=[
-                                ft.ElevatedButton(
-                                    content=ft.Text("６ × ６ でプレイ", size=42, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: self._select_size(6),
-                                    width=320,
-                                    height=140,
-                                    style=style_6x6,
-                                ),
-                                ft.ElevatedButton(
-                                    content=ft.Text("８ × ８ でプレイ", size=42, weight=ft.FontWeight.BOLD),
-                                    on_click=lambda _: self._select_size(8),
-                                    width=320,
-                                    height=140,
-                                    style=style_8x8,
-                                ),
-                            ],
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=40,
-                        ),
+                        ft.Container(
+                            content=ft.Column(
+                                controls=[
+                                    ft.ElevatedButton(
+                                        content=ft.Text("６ × ６ でプレイ", size=42, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: self._select_size(6),
+                                        width=320,
+                                        height=140,
+                                        style=style_6x6,
+                                    ),
+                                    ft.ElevatedButton(
+                                        content=ft.Text("８ × ８ でプレイ", size=42, weight=ft.FontWeight.BOLD),
+                                        on_click=lambda _: self._select_size(8),
+                                        width=320,
+                                        height=140,
+                                        style=style_8x8,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                spacing=40,
+                            ),
+                            alignment=ft.alignment.center,
+                            expand=True
+                        )
                     ],
                 ),
             ],
-            vertical_alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 
     def _select_size(self, size: int) -> None:
