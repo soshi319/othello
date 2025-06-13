@@ -4,7 +4,6 @@ class SelectLevelView(ft.View):
     def __init__(self, page, route):
         self.page = page
 
-        # 各ボタンのスタイルを定義
         style_master = ft.ButtonStyle(
             bgcolor="#f7a0c0", color="#FFFFFF", overlay_color="#e6578b",
             padding=20, shape=ft.RoundedRectangleBorder(radius=10)
@@ -70,7 +69,8 @@ class SelectLevelView(ft.View):
                             expand=False,
                         ),
                     ],
-                    # alignment引数を削除
                 )
-            ]
+            ],
+            vertical_alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )

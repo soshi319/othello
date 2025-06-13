@@ -4,7 +4,6 @@ class SelectTurnView(ft.View):
     def __init__(self, page, route):
         self.page = page
 
-        # ボタンのスタイルを定義
         style_black = ft.ButtonStyle(
             bgcolor="#222222", color="#FFFFFF", overlay_color="#888888",
             padding=20, shape=ft.RoundedRectangleBorder(radius=10)
@@ -47,7 +46,8 @@ class SelectTurnView(ft.View):
                             expand=False,
                         ),
                     ],
-                    # alignment引数を削除
                 )
-            ]
+            ],
+            vertical_alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )

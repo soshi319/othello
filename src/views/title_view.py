@@ -3,8 +3,7 @@ import flet as ft # type: ignore
 class TitleView(ft.View):
   def __init__(self, page, route):
     self.page = page
-
-    # ボタンのスタイルを定義 (text_style を削除)
+    
     start_button_style = ft.ButtonStyle(
         bgcolor="#F05D23",
         color="#FFFFFF",
@@ -24,7 +23,6 @@ class TitleView(ft.View):
               fit=ft.ImageFit.COVER
             ),
             ft.ElevatedButton(
-              # contentプロパティでテキストスタイルを指定
               content=ft.Text("START", size=40, weight=ft.FontWeight.BOLD),
               width=page.width * 0.2,
               height=page.height * 0.15,
@@ -33,7 +31,8 @@ class TitleView(ft.View):
               style=start_button_style,
             ),
           ],
-          # alignment引数を削除
         )
-      ]
+      ],
+      vertical_alignment=ft.MainAxisAlignment.CENTER,
+      horizontal_alignment=ft.CrossAxisAlignment.CENTER
     )

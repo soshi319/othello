@@ -46,13 +46,11 @@ class GameView(ft.View):
             ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
             self.ai_player_number = ai_player_number_for_ctrl
             
-            # ButtonStyleからtext_styleを削除
             self.button_style1 = ft.ButtonStyle( 
                     bgcolor="#FFFFFF", color="#000000", overlay_color="#818181",
                     padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10)
                 )
             
-            # ElevatedButtonのcontentプロパティでテキストスタイルを指定し、カンマ不足を修正
             self.start_button = ft.ElevatedButton(
                 content=ft.Text("START", size=24, weight=ft.FontWeight.BOLD),
                 on_click=self.on_click_start_game,
@@ -163,7 +161,9 @@ class GameView(ft.View):
                         controls=self.main_stack_controls,
                         expand=True
                     )
-                ]
+                ],
+                vertical_alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         except Exception as e:
             with open("gameview_error.txt", "w", encoding="utf-8") as f:
@@ -259,8 +259,6 @@ class GameView(ft.View):
                 can_put_dots_list.append(dot)
         othello = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=10, left=10)
         othello_stack = ft.Stack(controls=[board_container, board_shade, othello])
-        
-        # このStackからalignmentを削除
         stack = ft.Stack(controls=[container, othello_stack])
         return stack
     

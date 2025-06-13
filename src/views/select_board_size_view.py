@@ -6,7 +6,6 @@ class SelectBoardSizeView(ft.View):
     def __init__(self, page: ft.Page, route: str):
         self.page = page
 
-        # ボタンのスタイルを定義
         style_6x6 = ft.ButtonStyle(
             bgcolor="#4CAF50",
             color="#FFFFFF",
@@ -54,9 +53,10 @@ class SelectBoardSizeView(ft.View):
                             spacing=40,
                         ),
                     ],
-                    # alignment引数を削除
                 ),
             ],
+            vertical_alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
 
     def _select_size(self, size: int) -> None:
