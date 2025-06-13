@@ -4,6 +4,28 @@ class SelectLevelView(ft.View):
     def __init__(self, page, route):
         self.page = page
 
+        # 各ボタンのスタイルを定義
+        style_master = ft.ButtonStyle(
+            bgcolor="#f7a0c0", color="#FFFFFF", overlay_color="#e6578b",
+            padding=20, shape=ft.RoundedRectangleBorder(radius=10)
+        )
+        style_hard = ft.ButtonStyle(
+            bgcolor="#fca14b", color="#FFFFFF", overlay_color="#f08f34",
+            padding=20, shape=ft.RoundedRectangleBorder(radius=10)
+        )
+        style_normal = ft.ButtonStyle(
+            bgcolor="#fae465", color="#FFFFFF", overlay_color="#f7d337",
+            padding=20, shape=ft.RoundedRectangleBorder(radius=10)
+        )
+        style_easy = ft.ButtonStyle(
+            bgcolor="#81d9eb", color="#FFFFFF", overlay_color="#41baee",
+            padding=20, shape=ft.RoundedRectangleBorder(radius=10)
+        )
+        style_oni = ft.ButtonStyle(
+            bgcolor="#000000", color="#999999", overlay_color="#d80000",
+            padding=20, shape=ft.RoundedRectangleBorder(radius=10)
+        )
+
         super().__init__(
             route,
             [
@@ -17,69 +39,29 @@ class SelectLevelView(ft.View):
                         ft.Column(
                             controls=[
                                 ft.ElevatedButton(
-                                    "マスター",
+                                    content=ft.Text("マスター", size=40, weight=ft.FontWeight.BOLD),
                                     on_click=lambda _: (page.__setattr__("level", "master"), page.go("/select_turn")),
-                                    width=300, height=130,
-                                    style=ft.ButtonStyle(
-                                        bgcolor="#f7a0c0",
-                                        color="#FFFFFF",
-                                        overlay_color="#e6578b",  # 赤系濃い色
-                                        padding=20,
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        text_style=ft.TextStyle(size=40, weight=ft.FontWeight.BOLD),
-                                    ),
+                                    width=300, height=130, style=style_master,
                                 ),
                                 ft.ElevatedButton(
-                                    "むずかしい",
+                                    content=ft.Text("むずかしい", size=40, weight=ft.FontWeight.BOLD),
                                     on_click=lambda _: (page.__setattr__("level", "hard"), page.go("/select_turn")),
-                                    width=300, height=130,
-                                    style=ft.ButtonStyle(
-                                        bgcolor="#fca14b",
-                                        color="#FFFFFF",
-                                        overlay_color="#f08f34",  # 橙系濃い色
-                                        padding=20,
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        text_style=ft.TextStyle(size=40, weight=ft.FontWeight.BOLD),
-                                    ),
+                                    width=300, height=130, style=style_hard,
                                 ),
                                 ft.ElevatedButton(
-                                    "ふつう",
+                                    content=ft.Text("ふつう", size=40, weight=ft.FontWeight.BOLD),
                                     on_click=lambda _: (page.__setattr__("level", "normal"), page.go("/select_turn")),
-                                    width=300, height=130,
-                                    style=ft.ButtonStyle(
-                                        bgcolor="#fae465",
-                                        color="#FFFFFF",
-                                        overlay_color="#f7d337",  # 緑系濃い色
-                                        padding=20,
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        text_style=ft.TextStyle(size=40, weight=ft.FontWeight.BOLD),
-                                    ),
+                                    width=300, height=130, style=style_normal,
                                 ),
                                 ft.ElevatedButton(
-                                    "かんたん",
+                                    content=ft.Text("かんたん", size=40, weight=ft.FontWeight.BOLD),
                                     on_click=lambda _: (page.__setattr__("level", "easy"), page.go("/select_turn")),
-                                    width=300, height=130,
-                                    style=ft.ButtonStyle(
-                                        bgcolor="#81d9eb",
-                                        color="#FFFFFF",
-                                        overlay_color="#41baee",  # ← 濃い水色（hover時）
-                                        padding=20,
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        text_style=ft.TextStyle(size=40, weight=ft.FontWeight.BOLD),
-                                    ),
+                                    width=300, height=130, style=style_easy,
                                 ),
                                 ft.ElevatedButton(
-                                    "鬼",
+                                    content=ft.Text("鬼", size=10, weight=ft.FontWeight.BOLD),
                                     on_click=lambda _: (page.__setattr__("level", "oni"), page.go("/select_turn")),
-                                    width=10, height=10,
-                                    style=ft.ButtonStyle(
-                                        bgcolor="#000000",
-                                        color="#999999",
-                                        overlay_color="#d80000",  # ← 濃い水色（hover時）
-                                        padding=20,
-                                        shape=ft.RoundedRectangleBorder(radius=10),
-                                        text_style=ft.TextStyle(size=10, weight=ft.FontWeight.BOLD),
-                                    ),
+                                    width=10, height=10, style=style_oni,
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
@@ -88,7 +70,7 @@ class SelectLevelView(ft.View):
                             expand=False,
                         ),
                     ],
-                    alignment=ft.alignment.center,
+                    # alignment引数を削除
                 )
             ]
         )

@@ -41,19 +41,22 @@ class GameView(ft.View):
             self.player_color = getattr(page_arg, "player_color", "black")
             self.ai_color = "white" if self.player_color == "black" else "black"
             
-            self.level = getattr(page_arg, "level", "easy")   # ← 追加
+            self.level = getattr(page_arg, "level", "easy")
 
             ai_player_number_for_ctrl = 1 if self.ai_color == "white" else 2
-            self.ai_player_number = ai_player_number_for_ctrl  # または適切な値
+            self.ai_player_number = ai_player_number_for_ctrl
             
-            self.start_button = ft.ElevatedButton(
-                "START",
-                on_click=self.on_click_start_game, # page_argを渡す必要がなくなりました
-                style=ft.ButtonStyle( 
+            # ButtonStyleからtext_styleを削除
+            self.button_style1 = ft.ButtonStyle( 
                     bgcolor="#FFFFFF", color="#000000", overlay_color="#818181",
-                    padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10),
-                    text_style=ft.TextStyle(size=24, weight=ft.FontWeight.BOLD)
-                ),
+                    padding=ft.padding.all(20), shape=ft.RoundedRectangleBorder(radius=10)
+                )
+            
+            # ElevatedButtonのcontentプロパティでテキストスタイルを指定し、カンマ不足を修正
+            self.start_button = ft.ElevatedButton(
+                content=ft.Text("START", size=24, weight=ft.FontWeight.BOLD),
+                on_click=self.on_click_start_game,
+                style=self.button_style1,
                 height=70, width=250
             )
             
@@ -80,7 +83,7 @@ class GameView(ft.View):
                         ),
                         ft.ElevatedButton(
                             "タイトルへ戻る",
-                            on_click=self.go_to_title, # page_argを渡す必要がなくなりました
+                            on_click=self.go_to_title,
                             bgcolor="#4A5568",
                             color="#FFFFFF",
                             width=200,
@@ -93,19 +96,19 @@ class GameView(ft.View):
                     spacing=20,
                 ),
                 alignment=ft.alignment.center, expand=True,
-                bgcolor="#80000000", # 黒の80%不透明
+                bgcolor="#80000000",
                 visible=False, 
             )
 
             self.your_turn_image = ft.Image(
-                src="/your_turn.png", # assetsフォルダ内のあなたのターン用画像
-                width=400,            # 表示サイズは適宜調整
+                src="/your_turn.png",
+                width=400,
                 height=120,
                 fit=ft.ImageFit.CONTAIN,
                 visible=False
             )
             self.cpu_turn_image = ft.Image(
-                src="/cpu_turn.png",   # assetsフォルダ内のCPUのターン用画像
+                src="/cpu_turn.png",
                 width=400,
                 height=120,
                 fit=ft.ImageFit.CONTAIN,
@@ -127,18 +130,17 @@ class GameView(ft.View):
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                right=20, top=20,               # 画面右上
+                right=20, top=20,
             )
 
             self.turn_indicator_container = ft.Container(
                 content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
-                top=20,  # 画面上からの位置調整
-                left=20, # 画面左からの位置調整
+                top=20,
+                left=20,
                 padding=5,
-                # bgcolor=ft.colors.with_opacity(0.5, ft.colors.BLUE_ACCENT) # デバッグ用背景色
             )
 
-            othello_board_ui = self.makeOthelloBoard() # page_argを渡す必要がなくなりました
+            othello_board_ui = self.makeOthelloBoard()
             
             self.start_button_container = ft.Container( 
                 content=self.start_button,
@@ -166,7 +168,6 @@ class GameView(ft.View):
         except Exception as e:
             with open("gameview_error.txt", "w", encoding="utf-8") as f:
                 f.write(traceback.format_exc())
-            # Optional: エラー内容をFlet画面上で表示したい場合
             super().__init__(
                 route,
                 [
@@ -175,39 +176,27 @@ class GameView(ft.View):
                 ]
             )
 
-
     def update_turn_indicator(self):
         current_page = self.page_ref
         if not current_page: return
-
         player_turn_number_in_game_logic = 1 if self.player_color == "white" else 2
-        
         is_player_turn = self.game.turn == player_turn_number_in_game_logic
-        
         print(f"DEBUG VIEW: update_turn_indicator. Game turn: {self.game.turn}, Player color: {self.player_color}, Is Player Turn: {is_player_turn}")
-
         self.your_turn_image.visible = is_player_turn
         self.cpu_turn_image.visible = not is_player_turn
-        
-        # ゲーム終了時は両方非表示にする
-        if self.result_overlay.visible: # 結果オーバーレイが表示されているか（ゲーム終了）で判断
+        if self.result_overlay.visible:
              self.your_turn_image.visible = False
              self.cpu_turn_image.visible = False
-        
-        current_page.update() # ターン表示の変更をUIに反映
-
+        current_page.update()
 
     def on_click_start_game(self, e):
-        self.page_ref.update()   # ここでRef.currentが解決される
-
-        # ここでRefを渡してコントローラ生成
+        self.page_ref.update()
         self.game = Othello(
-            self.white_stones,   # 既にUIツリーに載っているRef
+            self.white_stones,
             self.black_stones,
             self.can_put_dots,
-            self.ai_player_number  # 必要なパラメータ
+            self.ai_player_number
         )
-
         self.game.start_game()
         self.game.update_can_put_dots_display()
         self.update_turn_indicator()
@@ -218,33 +207,23 @@ class GameView(ft.View):
         self.page_ref.update()
         self.try_ai_move()
 
-
     def try_ai_move(self):
         current_page = self.page_ref
-        ai_turn_in_controller = self.game.ai_player_number 
-        
+        ai_turn_in_controller = self.game.ai_player_number
         print(f"DEBUG VIEW: try_ai_move. Game turn: {self.game.turn}, Controller AI Num: {ai_turn_in_controller}")
-
         if self.game.turn == ai_turn_in_controller:
             level = getattr(current_page, "level", "easy")
             print(f"DEBUG VIEW: AI's turn ({self.ai_color}). Level: {level}. Calling AI logic...")
-            
-            # AIの思考ルーチン呼び出し
             if level == "easy": self.game.ai_move(current_page)
             elif level == "normal": self.game.monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "hard": self.game.upgraded_monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "master": self.game.alpha_beta_ai_move(current_page, depth=5)
             elif level == "oni": self.game.hybrid_ai_move(current_page, depth=5, switch_ai_moves=11)
-            
             print(f"DEBUG VIEW: AI logic call finished. Current game turn: {self.game.turn}")
-            # AIが手を打った（またはパスした）後、コントローラ側でヒント更新とターン表示更新が行われる
-            # GameView側でもターン表示を更新
             self.update_turn_indicator()
-            # current_page.update() # page.updateはコントローラ内のput_stoneやtry_passで行われる
-        else: # プレイヤーのターンになった場合
+        else:
             print(f"DEBUG VIEW: Now Player's turn ({self.player_color}). Game turn: {self.game.turn}")
-            self.update_turn_indicator() # プレイヤーのターン表示を確実にする
-            # current_page.update() # コントローラ側で update されているはず
+            self.update_turn_indicator()
 
     def makeOthelloBoard(self):
         current_page = self.page_ref
@@ -280,22 +259,23 @@ class GameView(ft.View):
                 can_put_dots_list.append(dot)
         othello = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=10, left=10)
         othello_stack = ft.Stack(controls=[board_container, board_shade, othello])
-        stack = ft.Stack(controls=[container, othello_stack], alignment=ft.alignment.center)
+        
+        # このStackからalignmentを削除
+        stack = ft.Stack(controls=[container, othello_stack])
         return stack
     
     def handle_player_move(self, r, c):
         current_page = self.page_ref
         player_turn_in_controller = 1 if self.player_color == "white" else 2
-        
         if self.game.turn == player_turn_in_controller:
             if (r,c) in self.game.can_put_area(self.game.turn):
-                self.game.put_stone(r, c, current_page) # コントローラ内でヒントとページ更新
-                self.update_turn_indicator() # プレイヤーの手の後にターン表示更新
+                self.game.put_stone(r, c, current_page)
+                self.update_turn_indicator()
                 if self.game.turn != 0 :
                     self.try_ai_move() 
 
     def show_result_ui(self, white_count, black_count): 
-        current_page_obj = self.page_ref 
+        current_page_obj = self.page_ref
         print(f"DEBUG VIEW: show_result_ui CALLED. White: {white_count}, Black: {black_count} on page {id(current_page_obj)}")
         score_text = f"あなた ({self.player_color}): {white_count if self.player_color == 'white' else black_count}  CPU ({self.ai_color}): {black_count if self.player_color == 'white' else white_count}"
         result_message = ""
@@ -312,9 +292,9 @@ class GameView(ft.View):
         
         self.result_text_control.value = result_message
         self.result_score_control.value = score_text
-        self.result_overlay.visible = True 
+        self.result_overlay.visible = True
         
-        self.your_turn_image.visible = False # ゲーム終了時はターン表示を消す
+        self.your_turn_image.visible = False
         self.cpu_turn_image.visible = False
         
         print("DEBUG VIEW: Result overlay visible set to True. Updating page.")
@@ -323,6 +303,6 @@ class GameView(ft.View):
     def go_to_title(self, e): 
         current_page_obj = self.page_ref 
         print(f"DEBUG VIEW: go_to_title called on page {id(current_page_obj)}")
-        self.result_overlay.visible = False 
+        self.result_overlay.visible = False
         current_page_obj.update() 
         current_page_obj.go("/")
