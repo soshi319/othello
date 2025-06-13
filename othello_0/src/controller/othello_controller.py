@@ -3,7 +3,7 @@ import numpy as np
 import random
 import time
 
-from settings import BOARD_SIZE
+import settings
 
 from data.black_stones import BlackStones
 from data.white_stones import WhiteStones
@@ -34,9 +34,9 @@ class Othello:
     # -------------------------------------------
 
     def __init__(self, white_stones, black_stones, can_put_dots, ai_player_number=None):
-        from settings import BOARD_SIZE
-        self.board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
-        c = BOARD_SIZE // 2
+        import settings
+        self.board = np.zeros((settings.BOARD_SIZE, settings.BOARD_SIZE), dtype=int)
+        c = settings.BOARD_SIZE // 2
         self.board[c-1, c-1] = 1; self.board[c, c] = 1
         self.board[c-1, c] = 2; self.board[c, c-1] = 2
         # 外から受け取ったRefで管理
@@ -48,27 +48,27 @@ class Othello:
         self.ai_move_count = 0
         
         # --- (変更点 2) BOARD_SIZE に応じて評価テーブルを選択 ---
-        if BOARD_SIZE == 8:
+        if settings.BOARD_SIZE == 8:
             self.weights = self._WEIGHTS_8x8
-        elif BOARD_SIZE == 6:
+        elif settings.BOARD_SIZE == 6:
             self.weights = self._WEIGHTS_6x6
         else:
             # サポート外のサイズでは位置評価を無効化 (ゼロ行列)
-            self.weights = np.zeros((BOARD_SIZE, BOARD_SIZE))
+            self.weights = np.zeros((settings.BOARD_SIZE, settings.BOARD_SIZE))
         # ----------------------------------------------------
 
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")
 
     def start_game(self):
         print("DEBUG CONTROLLER: start_game called")
-        c = BOARD_SIZE // 2
+        c = settings.BOARD_SIZE // 2
         self.flip([(c-1, c-1), (c, c)], 1)
         self.flip([(c-1, c), (c, c-1)], 2)
         # ヒント表示は GameView の on_click_start_game 内で update_can_put_dots_display を呼び出す
 
     def update_can_put_dots_display(self):
-        for i in range(BOARD_SIZE):
-            for j in range(BOARD_SIZE):
+        for i in range(settings.BOARD_SIZE):
+            for j in range(settings.BOARD_SIZE):
                 if self.can_put_dots[i][j] and hasattr(self.can_put_dots[i][j], 'current') and self.can_put_dots[i][j].current:
                     self.can_put_dots[i][j].current.visible = False
         is_ai_turn = self.ai_player_number is not None and self.turn == self.ai_player_number
@@ -120,19 +120,19 @@ class Othello:
     def can_put_area(self, turn_to_check):
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         possible_moves = [] 
-        for r_idx in range(BOARD_SIZE):
-            for c_idx in range(BOARD_SIZE):
+        for r_idx in range(settings.BOARD_SIZE):
+            for c_idx in range(settings.BOARD_SIZE):
                 if self.board[r_idx, c_idx] == 0: 
                     can_place_here = False
                     opponent_color = 3 - turn_to_check
                     for dr, dc in directions:
                         stones_in_between = []
                         curr_r, curr_c = r_idx + dr, c_idx + dc
-                        while 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
+                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
                             stones_in_between.append((curr_r, curr_c))
                             curr_r += dr
                             curr_c += dc
-                        if stones_in_between and 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and self.board[curr_r, curr_c] == turn_to_check:
+                        if stones_in_between and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == turn_to_check:
                             can_place_here = True
                             break 
                     if can_place_here:
@@ -148,11 +148,11 @@ class Othello:
         for dr, dc in directions:
             current_line_flips = []
             curr_r, curr_c = r_start + dr, c_start + dc
-            while 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
+            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == opponent_color:
                 current_line_flips.append((curr_r, curr_c))
                 curr_r += dr
                 curr_c += dc
-            if current_line_flips and 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and self.board[curr_r, curr_c] == turn_making_move:
+            if current_line_flips and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and self.board[curr_r, curr_c] == turn_making_move:
                 stones_to_flip_overall.extend(current_line_flips)
         return stones_to_flip_overall
 
@@ -208,8 +208,8 @@ class Othello:
             return
         
         if self.ai_move_count < 5:
-            x_squares = {(1, 1), (1, BOARD_SIZE-2),
-                         (BOARD_SIZE-2, 1), (BOARD_SIZE-2, BOARD_SIZE-2)}
+            x_squares = {(1, 1), (1, settings.BOARD_SIZE-2),
+                         (settings.BOARD_SIZE-2, 1), (settings.BOARD_SIZE-2, settings.BOARD_SIZE-2)}
             filtered = [mv for mv in possible_moves if mv not in x_squares]
             if filtered:
                 possible_moves = filtered
@@ -313,11 +313,11 @@ class Othello:
         for dr_s, dc_s in directions:
             stones_to_flip_in_line = []
             curr_r, curr_c = r_s + dr_s, c_s + dc_s
-            while 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
+            while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
                 stones_to_flip_in_line.append((curr_r, curr_c))
                 curr_r += dr_s
                 curr_c += dc_s
-            if stones_to_flip_in_line and 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
+            if stones_to_flip_in_line and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
                 for r_f, c_f in stones_to_flip_in_line:
                     board_s[r_f, c_f] = turn_s
 
@@ -325,18 +325,18 @@ class Othello:
         opponent_s = 3 - turn_s
         directions = [(-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1)]
         possible_moves_s = []
-        for r_idx_s in range(BOARD_SIZE):
-            for c_idx_s in range(BOARD_SIZE):
+        for r_idx_s in range(settings.BOARD_SIZE):
+            for c_idx_s in range(settings.BOARD_SIZE):
                 if board_s[r_idx_s, c_idx_s] == 0:
                     can_place_here_s = False
                     for dr_s, dc_s in directions:
                         stones_in_between_s = []
                         curr_r, curr_c = r_idx_s + dr_s, c_idx_s + dc_s
-                        while 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
+                        while 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == opponent_s:
                             stones_in_between_s.append((curr_r, curr_c))
                             curr_r += dr_s
                             curr_c += dc_s
-                        if stones_in_between_s and 0 <= curr_r < BOARD_SIZE and 0 <= curr_c < BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
+                        if stones_in_between_s and 0 <= curr_r < settings.BOARD_SIZE and 0 <= curr_c < settings.BOARD_SIZE and board_s[curr_r, curr_c] == turn_s:
                             can_place_here_s = True
                             break
                     if can_place_here_s:
@@ -430,7 +430,7 @@ class Othello:
     def _negamax_terminal(self, board_nt, turn_nt,
                           passes=0, alpha=None, beta=None):
         # 盤面サイズに合わせた評価値の最大/最小値
-        max_score = BOARD_SIZE * BOARD_SIZE
+        max_score = settings.BOARD_SIZE * settings.BOARD_SIZE
         if alpha is None:
             alpha = -max_score - 1
         if beta is None:
@@ -461,7 +461,7 @@ class Othello:
             self.try_pass(page)
             return
 
-        max_score = BOARD_SIZE * BOARD_SIZE
+        max_score = settings.BOARD_SIZE * settings.BOARD_SIZE
         best_val, best_move = -max_score - 1, None # あり得る最小スコアより小さい値
         for r, c in possible:
             child = self._clone_after_move_static(self.board, r, c, self.turn)

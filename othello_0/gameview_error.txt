@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 141, in __init__
+    othello_board_ui = self.makeOthelloBoard() # page_argを渡す必要がなくなりました
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\choko\Codes\Python\othello\othello_0\src\views\game_view.py", line 259, in makeOthelloBoard
+    dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=5) for i in [settings.BOARD_SIZE//3, settings.BOARD_SIZE*2//3] for j in [BOARD_SIZE//3, BOARD_SIZE*2//3]]
+                                                                                                                                                                                                     ^^^^^^^^^^
+NameError: name 'BOARD_SIZE' is not defined

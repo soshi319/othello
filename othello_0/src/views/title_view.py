@@ -18,7 +18,7 @@ class TitleView(ft.View):
               "START",
               width=page.width * 0.2,
               height=page.height * 0.15,
-              on_click=lambda _: page.go("/select_level"),
+              on_click=lambda _: page.go("/select_board_size"),
               bottom=page.height * 0.25,
               style=ft.ButtonStyle(
                 bgcolor="#F05D23",          # ボタンの背景色

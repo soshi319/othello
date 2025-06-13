@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import flet as ft # type: ignore
 
-from settings import BOARD_SIZE
+import settings
 # ▼ 難易度／手番ごとのアイコン（assets フォルダに置く）
 DIFFICULTY_ICONS = {
     "easy":   "/level_easy.png",
@@ -36,7 +36,7 @@ class GameView(ft.View):
             self.white_stones = WhiteStones().white_stones
             self.black_stones = BlackStones().black_stones
             self.can_put_dots = CanPutDots().can_put_dots
-            self.click_areas = [[ft.Ref[ft.Stack]() for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+            self.click_areas = [[ft.Ref[ft.Stack]() for _ in range(settings.BOARD_SIZE)] for _ in range(settings.BOARD_SIZE)]
             
             self.player_color = getattr(page_arg, "player_color", "black")
             self.ai_color = "white" if self.player_color == "black" else "black"
@@ -249,23 +249,23 @@ class GameView(ft.View):
     def makeOthelloBoard(self):
         current_page = self.page_ref
         board_length = current_page.height * 0.8 
-        grid_size = board_length / BOARD_SIZE
+        grid_size = board_length / settings.BOARD_SIZE
         container = ft.Container(height=current_page.height, width=current_page.width, bgcolor="#77e0d9")
         board_container = ft.Container(height=board_length + 20, width=board_length + 20)
         board_green = ft.Container(height=board_length + 2, width=board_length + 2, bgcolor='#299643')
         board_shade = ft.Container(height=board_length + 20, width=board_length + 20, bgcolor="#B36C3E", top=0, left=0, border_radius=10)
-        board_vertical_lines = [ft.Container(height=board_length+2, width=2, bgcolor='#000000', top=0, left=i * grid_size) for i in range(BOARD_SIZE + 1)]
-        board_horizontal_lines = [ft.Container(height=2, width=board_length+2, bgcolor='#000000', top=i * grid_size, left=0) for i in range(BOARD_SIZE + 1)]
-        dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=5) for i in [BOARD_SIZE//3, BOARD_SIZE*2//3] for j in [BOARD_SIZE//3, BOARD_SIZE*2//3]]
+        board_vertical_lines = [ft.Container(height=board_length+2, width=2, bgcolor='#000000', top=0, left=i * grid_size) for i in range(settings.BOARD_SIZE + 1)]
+        board_horizontal_lines = [ft.Container(height=2, width=board_length+2, bgcolor='#000000', top=i * grid_size, left=0) for i in range(settings.BOARD_SIZE + 1)]
+        dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=5) for i in [settings.BOARD_SIZE//3, settings.BOARD_SIZE*2//3] for j in [settings.BOARD_SIZE//3, settings.BOARD_SIZE*2//3]]
         white_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
         white_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
-        white_discs = [ft.Stack(controls=[white_disc_back, white_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.white_stones[row][column]) for row in range(BOARD_SIZE) for column in range(BOARD_SIZE)]
+        white_discs = [ft.Stack(controls=[white_disc_back, white_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.white_stones[row][column]) for row in range(settings.BOARD_SIZE) for column in range(settings.BOARD_SIZE)]
         black_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
         black_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
-        black_discs = [ft.Stack(controls=[black_disc_back, black_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.black_stones[row][column]) for row in range(BOARD_SIZE) for column in range(BOARD_SIZE)]
+        black_discs = [ft.Stack(controls=[black_disc_back, black_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.black_stones[row][column]) for row in range(settings.BOARD_SIZE) for column in range(settings.BOARD_SIZE)]
         click_areas_list = []
-        for row_idx in range(BOARD_SIZE):
-            for col_idx in range(BOARD_SIZE):
+        for row_idx in range(settings.BOARD_SIZE):
+            for col_idx in range(settings.BOARD_SIZE):
                 btn = ft.CupertinoButton("T",
                     height=grid_size * 9 / 10, width=grid_size * 9 / 10, opacity=0,
                     top=grid_size * row_idx + grid_size * 1 / 20, left=grid_size * col_idx + grid_size * 1 / 20,
@@ -274,8 +274,8 @@ class GameView(ft.View):
                 )
                 click_areas_list.append(btn)
         can_put_dots_list = []
-        for row in range(BOARD_SIZE):
-            for column in range(BOARD_SIZE):
+        for row in range(settings.BOARD_SIZE):
+            for column in range(settings.BOARD_SIZE):
                 dot = ft.Container(height=grid_size * 2 / 10, width=grid_size * 2 / 10, bgcolor="#FFF671", border_radius=grid_size * 1 / 10, top=grid_size * row + grid_size * 4 / 10, left=grid_size * column + grid_size * 4 / 10, visible=False, ref=self.can_put_dots[row][column])
                 can_put_dots_list.append(dot)
         othello = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=10, left=10)

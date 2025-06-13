@@ -7,6 +7,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import flet as ft # type: ignore
 
 from views.title_view import TitleView
+from views.select_board_size_view import SelectBoardSizeView
 from views.game_view import GameView
 from views.select_level_view import SelectLevelView
 from views.select_turn_view import SelectTurnView
@@ -24,6 +25,10 @@ def main(page: ft.Page):
     if e.route == "/":
       page.views.append(
         TitleView(page, e.route)
+      )
+    elif e.route == "/select_board_size":
+      page.views.append(
+        SelectBoardSizeView(page, e.route)
       )
     elif e.route == "/select_level":
       page.views.append(
