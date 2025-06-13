@@ -1,4 +1,4 @@
-# othello_controller.py (ファイル31の修正案)
+# othello_controller.py (BOARD_SIZE=8 対応版)
 import numpy as np
 import random
 import time
@@ -10,6 +10,29 @@ from data.white_stones import WhiteStones
 from data.can_put_dots import CanPutDots
 
 class Othello:
+    # --- (変更点 1) 8x8盤用の評価テーブルを追加 ---
+    # 位置評価用の 6×6 重み表
+    _WEIGHTS_6x6 = np.array([
+        [100, -20,  10,  10, -20, 100],
+        [-20, -50,  -2,  -2, -50, -20],
+        [ 10,  -2,   5,   5,  -2,  10],
+        [ 10,  -2,   5,   5,  -2,  10],
+        [-20, -50,  -2,  -2, -50, -20],
+        [100, -20,  10,  10, -20, 100],
+    ])
+    # 位置評価用の 8×8 重み表 (標準的なもの)
+    _WEIGHTS_8x8 = np.array([
+        [120, -20,  20,   5,   5,  20, -20, 120],
+        [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
+        [ 20,  -5,  15,   3,   3,  15,  -5,  20],
+        [  5,  -5,   3,   3,   3,   3,  -5,   5],
+        [  5,  -5,   3,   3,   3,   3,  -5,   5],
+        [ 20,  -5,  15,   3,   3,  15,  -5,  20],
+        [-20, -40,  -5,  -5,  -5,  -5, -40, -20],
+        [120, -20,  20,   5,   5,  20, -20, 120],
+    ])
+    # -------------------------------------------
+
     def __init__(self, white_stones, black_stones, can_put_dots, ai_player_number=None):
         from settings import BOARD_SIZE
         self.board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
@@ -22,7 +45,18 @@ class Othello:
         self.can_put_dots = can_put_dots
         self.turn = 2
         self.ai_player_number = ai_player_number
-        self.ai_move_count = 0 
+        self.ai_move_count = 0
+        
+        # --- (変更点 2) BOARD_SIZE に応じて評価テーブルを選択 ---
+        if BOARD_SIZE == 8:
+            self.weights = self._WEIGHTS_8x8
+        elif BOARD_SIZE == 6:
+            self.weights = self._WEIGHTS_6x6
+        else:
+            # サポート外のサイズでは位置評価を無効化 (ゼロ行列)
+            self.weights = np.zeros((BOARD_SIZE, BOARD_SIZE))
+        # ----------------------------------------------------
+
         print(f"DEBUG CONTROLLER __init__: Turn: {self.turn}, AI Player Num: {self.ai_player_number}")
 
     def start_game(self):
@@ -165,7 +199,7 @@ class Othello:
         """
         Monte-Carlo 法で着手を選ぶ。
         ただし AI の着手数が 5 手未満の間は X マス
-          [(1,1),(1,4),(4,1),(4,4)] を候補から除外する。
+          (例: 6x6盤なら (1,1),(1,4),(4,1),(4,4)) を候補から除外する。
         """
         possible_moves = self.can_put_area(self.turn)
         if not possible_moves:
@@ -173,11 +207,11 @@ class Othello:
                 return
             return
         
-        if self.ai_move_count < 5:                         # 「5 回以内」判定
+        if self.ai_move_count < 5:
             x_squares = {(1, 1), (1, BOARD_SIZE-2),
                          (BOARD_SIZE-2, 1), (BOARD_SIZE-2, BOARD_SIZE-2)}
             filtered = [mv for mv in possible_moves if mv not in x_squares]
-            if filtered:                                   # X 以外にも手があるときだけ制限
+            if filtered:
                 possible_moves = filtered
 
         best_winrate, best_move = -1, None
@@ -191,7 +225,6 @@ class Othello:
                 best_winrate, best_move = winrate, (r, c)
 
         if best_move is None:
-            # 念のため（あり得ないはずだが念押しで）
             best_move = random.choice(possible_moves)
 
         self.put_stone(best_move[0], best_move[1], page)
@@ -232,7 +265,7 @@ class Othello:
 
         if best_move is not None:
             print(f"DEBUG CONTROLLER: AI (Monte Carlo) is putting stone at ({best_move[0]},{best_move[1]})")
-            self.put_stone(best_move[0], best_move[1], page) # この中でターン表示も更新されるはず
+            self.put_stone(best_move[0], best_move[1], page)
             print(f"DEBUG CONTROLLER: monte_carlo_ai_move finished for turn {self.turn} (after put_stone)")
         else:
             print("DEBUG CONTROLLER: AI (Monte Carlo) could not determine a best move. THIS SHOULD NOT HAPPEN if possible_moves is not empty.")
@@ -312,29 +345,17 @@ class Othello:
     
     # ============================================================
 
-
-    # 位置評価用の 6×6 重み表（角 > 辺 > 中央 のシンプル版）
-    _WEIGHTS_6x6 = np.array([
-        [100, -20,  10,  10, -20, 100],
-        [-20, -50,  -2,  -2, -50, -20],
-        [ 10,  -2,   5,   5,  -2,  10],
-        [ 10,  -2,   5,   5,  -2,  10],
-        [-20, -50,  -2,  -2, -50, -20],
-        [100, -20,  10,  10, -20, 100],
-    ])
-
-    # --- 静的評価 -------------------------------------------------
+    # --- (変更点 3) 静的評価関数を self.weights を使うように修正 ---
     def _evaluate_static(self, board_sta, turn_sta):
         """
         位置重み + モビリティ差の評価値を返す。
-        ※ 6×6 盤専用の _WEIGHTS_6x6 を使用
+        インスタンスの self.weights を使用して評価する。
         """
         opp = 3 - turn_sta
 
-        # --- 位置重み --------------------------------------------------
-        # 角・辺などの重みを、自分の石の座標と相手の石の座標で個別に合計し差を取る
-        my_score  = np.sum(self._WEIGHTS_6x6[board_sta == turn_sta])
-        opp_score = np.sum(self._WEIGHTS_6x6[board_sta == opp])
+        # --- 位置重み (初期化時に選択された self.weights を使用) ---
+        my_score  = np.sum(self.weights[board_sta == turn_sta])
+        opp_score = np.sum(self.weights[board_sta == opp])
         pos_score = my_score - opp_score
 
         # --- モビリティ（合法手数差）----------------------------------
@@ -344,19 +365,18 @@ class Othello:
         )
 
         return pos_score + mob_score
-    # --- 盤面コピー＆着手適用 ------------------------------------
+    # --------------------------------------------------------
+
     def _clone_after_move_static(self, board_sta, r_sta, c_sta, turn_sta):
         """board_sta をコピーし (r,c) へ turn_sta が打った盤面を返す."""
         new_brd = np.copy(board_sta)
         self._simulate_put_stone(new_brd, r_sta, c_sta, turn_sta)
         return new_brd
 
-    # --- Negamax + α–β ------------------------------------------
     def _negamax(self, board_ng, turn_ng, depth, alpha, beta):
         """Negamax 本体。評価値を返す."""
         moves = self._simulate_can_put_area(board_ng, turn_ng)
         if depth == 0 or not moves:
-            # パスが可能なら 1 手スキップして評価
             if not moves and self._simulate_can_put_area(board_ng, 3 - turn_ng):
                 return -self._negamax(board_ng, 3 - turn_ng,
                                       depth, -beta, -alpha)
@@ -369,26 +389,22 @@ class Othello:
                                  depth - 1, -beta, -alpha)
             best = max(best, val)
             alpha = max(alpha, val)
-            if alpha >= beta:      # β カット
+            if alpha >= beta:
                 break
         return best
 
-    # --- 公開 API: 強化 CPU の着手 -------------------------------
     def alpha_beta_ai_move(self, page, depth=5):
         """
         深さ `depth` の α–β 探索で最善手を指す。
-        `page` は既存 put_stone() と同じく UI 更新に回す。
         """
         possible_moves = self.can_put_area(self.turn)
         if not possible_moves:
             if self.try_pass(page):
                 return
-            # パス不可 & 手も無し → ゲーム終了処理は try_pass 内で実施済み
             return
 
         best_val = -1e9
         best_move = None
-        # 着手順はモビリティの少ない手を優先すると枝刈り効率が上がる
         for r, c in sorted(possible_moves,
                            key=lambda rc: -len(self._simulate_can_put_area(
                                self._clone_after_move_static(
@@ -401,7 +417,6 @@ class Othello:
                 best_val = val
                 best_move = (r, c)
 
-        # 着手実行
         if best_move is not None:
             self.put_stone(best_move[0], best_move[1], page)
             
@@ -411,60 +426,65 @@ class Othello:
         opp = np.sum(board_td == 3 - turn_td)
         return my - opp
 
-    # ---------- 終盤 Negamax（評価値なし） ----------
+    # --- (変更点 4) 終盤探索の評価値の初期値を BOARD_SIZE に応じて変更 ---
     def _negamax_terminal(self, board_nt, turn_nt,
-                          passes=0, alpha=-64, beta=64):
+                          passes=0, alpha=None, beta=None):
+        # 盤面サイズに合わせた評価値の最大/最小値
+        max_score = BOARD_SIZE * BOARD_SIZE
+        if alpha is None:
+            alpha = -max_score - 1
+        if beta is None:
+            beta = max_score + 1
+
         moves = self._simulate_can_put_area(board_nt, turn_nt)
 
         if not moves:
-            # 連続２パスで終局
             if passes == 1:
                 return self._disc_diff(board_nt, turn_nt)
             return -self._negamax_terminal(board_nt, 3 - turn_nt,
                                            passes + 1, -beta, -alpha)
 
-        best = -64
+        best = -max_score - 1 # あり得る最小スコアより小さい値
         for r, c in moves:
             child = self._clone_after_move_static(board_nt, r, c, turn_nt)
             val = -self._negamax_terminal(child, 3 - turn_nt,
                                            0, -beta, -alpha)
             best = max(best, val)
             alpha = max(alpha, val)
-            if alpha >= beta:               # βカット
+            if alpha >= beta:
                 break
         return best
 
-    # ---------- 公開：終盤 Negamax １手進める ----------
     def endgame_negamax_ai_move(self, page):
         possible = self.can_put_area(self.turn)
         if not possible:
             self.try_pass(page)
             return
 
-        best_val, best_move = -64, None
+        max_score = BOARD_SIZE * BOARD_SIZE
+        best_val, best_move = -max_score - 1, None # あり得る最小スコアより小さい値
         for r, c in possible:
             child = self._clone_after_move_static(self.board, r, c, self.turn)
+            # 初回呼び出しでは alpha/beta を渡さず、_negamax_terminal 内部で設定させる
             val = -self._negamax_terminal(child, 3 - self.turn)
             if val > best_val:
                 best_val, best_move = val, (r, c)
+        
+        if best_move:
+            self.put_stone(best_move[0], best_move[1], page)
 
-        self.put_stone(best_move[0], best_move[1], page)
-
-        # AI の手数カウント
         if self.ai_player_number is not None and self.turn != self.ai_player_number:
             self.ai_move_count += 1
+    # -------------------------------------------------------------------
 
-    # ---------- ハイブリッド AI ----------
     def hybrid_ai_move(self, page, depth=7, switch_ai_moves=11):
         """
         AI が switch_ai_moves (既定11) 手を打つまでは α–β 探索、
         12 手目以降は終局まで Negamax。
         """
         if self.ai_move_count <= switch_ai_moves:
-            # 既存 α–β
             self.alpha_beta_ai_move(page, depth)
         else:
-            # 終盤 Negamax
             self.endgame_negamax_ai_move(page)
 
     
@@ -484,7 +504,6 @@ class Othello:
             
             self.update_can_put_dots_display() 
             
-            # ★★★ GameView側のターン表示も更新 ★★★
             if hasattr(page_arg_ctrl, 'current_game_view_instance') and \
                hasattr(page_arg_ctrl.current_game_view_instance, 'update_turn_indicator'):
                 print("DEBUG CONTROLLER: Calling game_view.update_turn_indicator() from try_pass")
@@ -499,7 +518,6 @@ class Othello:
                 print(f"{next_player_name}も置けません。両者ともパスとなり、ゲーム終了です。")
                 self.end_game(page_arg_ctrl)
             else:
-                # ☆☆☆ パス後に手番が AI ならすぐ思考させる ☆☆☆
                 if self.ai_player_number is not None and self.turn == self.ai_player_number:
                     if hasattr(page_arg_ctrl, "current_game_view_instance"):
                         gv = page_arg_ctrl.current_game_view_instance
@@ -507,7 +525,7 @@ class Othello:
                             print("DEBUG CONTROLLER: try_pass -> calling GameView.try_ai_move()")
                             gv.try_ai_move()
 
-            return True   # ← AI 呼び出しの後でリターン
+            return True
         return False 
     
     def end_game(self, page_arg_ctrl):
