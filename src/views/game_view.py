@@ -30,7 +30,9 @@ class GameView(ft.View):
         try:
             print(f"DEBUG GameView __init__: Received page_arg: {page_arg} (ID: {id(page_arg)})")
             
-            self.page_ref = page_arg 
+            self.page_ref = page_arg
+            width = page_arg.width
+            height = page_arg.height
             page_arg.current_game_view_instance = self 
 
             self.white_stones = WhiteStones().white_stones
@@ -52,12 +54,13 @@ class GameView(ft.View):
                 )
             
             self.start_button = ft.ElevatedButton(
-                content=ft.Text("START", size=24, weight=ft.FontWeight.BOLD),
+                content=ft.Text("START", size=width // 60, weight=ft.FontWeight.BOLD),
                 on_click=self.on_click_start_game,
                 style=self.button_style1,
-                height=70, width=250
+                height=height // 13, width=width // 8
             )
             
+            # ▼▼▼【変更箇所】結果表示のUI定義を最初の状態に戻します ▼▼▼
             self.result_text_control = ft.Text("結果計算中...", size=30, weight=ft.FontWeight.BOLD, color="#FFFFFF")
             self.result_score_control = ft.Text("白: 0  黒: 0", size=24, color="#FFFFFF")
             self.result_difficulty_icon = ft.Image(
@@ -95,31 +98,34 @@ class GameView(ft.View):
                 ),
                 alignment=ft.alignment.center, expand=True,
                 bgcolor="#80000000",
-                visible=False, 
+                visible=False,
+                height=height,
+                width=width,
             )
+            # ▲▲▲【変更箇所】ここまで ▲▲▲
 
             self.your_turn_image = ft.Image(
                 src="/your_turn.png",
-                width=400,
-                height=120,
+                width=width // 5,
+                height=height // 8,
                 fit=ft.ImageFit.CONTAIN,
                 visible=False
             )
             self.cpu_turn_image = ft.Image(
                 src="/cpu_turn.png",
-                width=400,
-                height=120,
+                width=width // 5,
+                height=height // 8,
                 fit=ft.ImageFit.CONTAIN,
                 visible=False
             )
             
             self.difficulty_game_icon = ft.Image(
                 src=DIFFICULTY_ICONS.get(self.level, DIFFICULTY_ICONS["easy"]),
-                width=300, height=90, fit=ft.ImageFit.CONTAIN
+                width=width // 5, height=height // 8, fit=ft.ImageFit.CONTAIN
             )
             self.turn_game_icon = ft.Image(
                 src=TURN_ICONS.get(self.player_color, TURN_ICONS["black"]),
-                width=90, height=90, fit=ft.ImageFit.CONTAIN
+                width=width // 18, height=width // 18, fit=ft.ImageFit.CONTAIN
             )
             self.info_container = ft.Container(
                 content=ft.Column(
@@ -128,24 +134,27 @@ class GameView(ft.View):
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                right=20, top=20,
+                right=height * 0.02,
+                top=height * 0.02,
             )
 
             self.turn_indicator_container = ft.Container(
                 content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
-                top=20,
-                left=20,
+                right=height * 0.02,
+                top=height * 0.25,
                 padding=5,
             )
 
             othello_board_ui = self.makeOthelloBoard()
             
+            button_width = width // 8
             self.start_button_container = ft.Container( 
                 content=self.start_button,
-                alignment=ft.alignment.center,
-                expand=True
+                top=height * 0.45,
+                left=(width - button_width) / 2
             )
             
+            # ▼▼▼【変更箇所】main_stack_controlsの定義を最初の状態に戻します ▼▼▼
             self.main_stack_controls = [
                 othello_board_ui,
                 self.turn_indicator_container,
@@ -158,12 +167,14 @@ class GameView(ft.View):
                 route,
                 [
                     ft.Stack(
-                        controls=self.main_stack_controls
+                        controls=self.main_stack_controls,
                     )
                 ],
                 vertical_alignment=ft.MainAxisAlignment.CENTER,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
+            # ▲▲▲【変更箇所】ここまで ▲▲▲
+
         except Exception as e:
             with open("gameview_error.txt", "w", encoding="utf-8") as f:
                 f.write(traceback.format_exc())
@@ -180,7 +191,6 @@ class GameView(ft.View):
         if not current_page: return
         player_turn_number_in_game_logic = 1 if self.player_color == "white" else 2
         is_player_turn = self.game.turn == player_turn_number_in_game_logic
-        print(f"DEBUG VIEW: update_turn_indicator. Game turn: {self.game.turn}, Player color: {self.player_color}, Is Player Turn: {is_player_turn}")
         self.your_turn_image.visible = is_player_turn
         self.cpu_turn_image.visible = not is_player_turn
         if self.result_overlay.visible:
@@ -188,6 +198,7 @@ class GameView(ft.View):
              self.cpu_turn_image.visible = False
         current_page.update()
 
+    # ▼▼▼【変更箇所】スタートボタン削除ロジックを最初の状態に戻します ▼▼▼
     def on_click_start_game(self, e):
         self.page_ref.update()
         self.game = Othello(
@@ -205,42 +216,54 @@ class GameView(ft.View):
                 self.controls[0].controls = self.main_stack_controls
         self.page_ref.update()
         self.try_ai_move()
+    # ▲▲▲【変更箇所】ここまで ▲▲▲
 
     def try_ai_move(self):
         current_page = self.page_ref
         ai_turn_in_controller = self.game.ai_player_number
-        print(f"DEBUG VIEW: try_ai_move. Game turn: {self.game.turn}, Controller AI Num: {ai_turn_in_controller}")
         if self.game.turn == ai_turn_in_controller:
             level = getattr(current_page, "level", "easy")
-            print(f"DEBUG VIEW: AI's turn ({self.ai_color}). Level: {level}. Calling AI logic...")
             if level == "easy": self.game.ai_move(current_page)
             elif level == "normal": self.game.monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "hard": self.game.upgraded_monte_carlo_ai_move(current_page, num_simulations=100)
             elif level == "master": self.game.alpha_beta_ai_move(current_page, depth=5)
             elif level == "oni": self.game.hybrid_ai_move(current_page, depth=5, switch_ai_moves=11)
-            print(f"DEBUG VIEW: AI logic call finished. Current game turn: {self.game.turn}")
             self.update_turn_indicator()
         else:
-            print(f"DEBUG VIEW: Now Player's turn ({self.player_color}). Game turn: {self.game.turn}")
             self.update_turn_indicator()
 
     def makeOthelloBoard(self):
         current_page = self.page_ref
-        board_length = current_page.height * 0.8 
+        width = current_page.width
+        height = current_page.height
+        
+        board_length = height * 0.8 
+        padding = height * 0.022
+        radius = padding / 2
+        
         grid_size = board_length / settings.BOARD_SIZE
-        container = ft.Container(height=current_page.height, width=current_page.width, bgcolor="#77e0d9")
-        board_container = ft.Container(height=board_length + 20, width=board_length + 20)
+        
+        background_container = ft.Container(height=height, width=width, bgcolor="#77e0d9")
+        
+        board_container_width = board_length + padding
+        board_container_height = board_length + padding
+        
+        board_container = ft.Container(height=board_container_height, width=board_container_width)
         board_green = ft.Container(height=board_length + 2, width=board_length + 2, bgcolor='#299643')
-        board_shade = ft.Container(height=board_length + 20, width=board_length + 20, bgcolor="#B36C3E", top=0, left=0, border_radius=10)
+        board_shade = ft.Container(height=board_container_height, width=board_container_width, bgcolor="#B36C3E", top=0, left=0, border_radius=radius)
+        
         board_vertical_lines = [ft.Container(height=board_length+2, width=2, bgcolor='#000000', top=0, left=i * grid_size) for i in range(settings.BOARD_SIZE + 1)]
         board_horizontal_lines = [ft.Container(height=2, width=board_length+2, bgcolor='#000000', top=i * grid_size, left=0) for i in range(settings.BOARD_SIZE + 1)]
         dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=5) for i in [settings.BOARD_SIZE//3, settings.BOARD_SIZE*2//3] for j in [settings.BOARD_SIZE//3, settings.BOARD_SIZE*2//3]]
+        
         white_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
         white_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
         white_discs = [ft.Stack(controls=[white_disc_back, white_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.white_stones[row][column]) for row in range(settings.BOARD_SIZE) for column in range(settings.BOARD_SIZE)]
+        
         black_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
         black_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
         black_discs = [ft.Stack(controls=[black_disc_back, black_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.black_stones[row][column]) for row in range(settings.BOARD_SIZE) for column in range(settings.BOARD_SIZE)]
+        
         click_areas_list = []
         for row_idx in range(settings.BOARD_SIZE):
             for col_idx in range(settings.BOARD_SIZE):
@@ -251,15 +274,25 @@ class GameView(ft.View):
                     on_click=lambda e, r=row_idx, c=col_idx: self.handle_player_move(r, c) 
                 )
                 click_areas_list.append(btn)
+
         can_put_dots_list = []
         for row in range(settings.BOARD_SIZE):
             for column in range(settings.BOARD_SIZE):
                 dot = ft.Container(height=grid_size * 2 / 10, width=grid_size * 2 / 10, bgcolor="#FFF671", border_radius=grid_size * 1 / 10, top=grid_size * row + grid_size * 4 / 10, left=grid_size * column + grid_size * 4 / 10, visible=False, ref=self.can_put_dots[row][column])
                 can_put_dots_list.append(dot)
-        othello = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=10, left=10)
-        othello_stack = ft.Stack(controls=[board_container, board_shade, othello])
-        stack = ft.Stack(controls=[container, othello_stack])
-        return stack
+
+        othello_inner = ft.Stack(controls=[board_green, *board_vertical_lines, *board_horizontal_lines, *dots, *white_discs, *black_discs, *can_put_dots_list, *click_areas_list], top=padding/2, left=padding/2)
+        othello_board_stack = ft.Stack(controls=[board_container, board_shade, othello_inner])
+        
+        centered_board_container = ft.Container(
+            content=othello_board_stack,
+            width=board_container_width,
+            height=board_container_height,
+            top=(height - board_container_height) / 2,
+            left=(width - board_container_width) / 2,
+        )
+
+        return ft.Stack(controls=[background_container, centered_board_container])
     
     def handle_player_move(self, r, c):
         current_page = self.page_ref
@@ -273,20 +306,23 @@ class GameView(ft.View):
 
     def show_result_ui(self, white_count, black_count): 
         current_page_obj = self.page_ref
-        print(f"DEBUG VIEW: show_result_ui CALLED. White: {white_count}, Black: {black_count} on page {id(current_page_obj)}")
-        score_text = f"あなた ({self.player_color}): {white_count if self.player_color == 'white' else black_count}  CPU ({self.ai_color}): {black_count if self.player_color == 'white' else white_count}"
-        result_message = ""
-        player_won = False; cpu_won = False
-        if white_count > black_count: 
-            if self.player_color == "white": player_won = True
-            else: cpu_won = True
-        elif black_count > white_count:
-            if self.player_color == "black": player_won = True
-            else: cpu_won = True
-        if player_won: result_message = "あなたの勝ち！"
-        elif cpu_won: result_message = "CPUの勝ち！"
-        else: result_message = "引き分け！"
         
+        player_score = white_count if self.player_color == 'white' else black_count
+        cpu_score = black_count if self.player_color == 'white' else white_count
+        
+        score_text = f"あなた ({self.player_color}): {player_score}  CPU ({self.ai_color}): {cpu_score}"
+        
+        result_message = ""
+        player_won = (self.player_color == 'white' and white_count > black_count) or \
+                     (self.player_color == 'black' and black_count > white_count)
+        
+        if player_score == cpu_score:
+            result_message = "引き分け！"
+        elif player_won:
+            result_message = "あなたの勝ち！"
+        else:
+            result_message = "あなたの負け"
+
         self.result_text_control.value = result_message
         self.result_score_control.value = score_text
         self.result_overlay.visible = True
@@ -294,12 +330,10 @@ class GameView(ft.View):
         self.your_turn_image.visible = False
         self.cpu_turn_image.visible = False
         
-        print("DEBUG VIEW: Result overlay visible set to True. Updating page.")
         current_page_obj.update()
 
     def go_to_title(self, e): 
         current_page_obj = self.page_ref 
-        print(f"DEBUG VIEW: go_to_title called on page {id(current_page_obj)}")
         self.result_overlay.visible = False
         current_page_obj.update() 
         current_page_obj.go("/")

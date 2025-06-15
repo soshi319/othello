@@ -25,7 +25,7 @@ class TitleView(ft.View):
             # ボタンをContainerでラップして中央揃えを実現
             ft.Container(
               content=ft.ElevatedButton(
-                content=ft.Text("START", size=40, weight=ft.FontWeight.BOLD),
+                content=ft.Text("START", size=page.width // 30, weight=ft.FontWeight.BOLD),
                 width=page.width * 0.2,
                 height=page.height * 0.15,
                 on_click=lambda _: page.go("/select_board_size"),
@@ -39,4 +39,4 @@ class TitleView(ft.View):
           ],
         )
       ]
-    )
+  )

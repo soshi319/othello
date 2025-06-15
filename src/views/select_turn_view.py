@@ -49,6 +49,9 @@ class SelectTurnView(ft.View):
                                 spacing=100,
                                 expand=False,
                             ),
+                            top=page.height * 0.15,
+                            left=0,
+                            right=0,
                             alignment=ft.alignment.center,
                             expand=True
                         ),

@@ -38,17 +38,17 @@ class SelectBoardSizeView(ft.View):
                             content=ft.Column(
                                 controls=[
                                     ft.ElevatedButton(
-                                        content=ft.Text("６ × ６ でプレイ", size=42, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("６ × ６ でプレイ", size=page.width // 40, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: self._select_size(6),
-                                        width=320,
-                                        height=140,
+                                        width=page.width * 0.25,
+                                        height=page.height * 0.15,
                                         style=style_6x6,
                                     ),
                                     ft.ElevatedButton(
-                                        content=ft.Text("８ × ８ でプレイ", size=42, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("８ × ８ でプレイ", size=page.width // 40, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: self._select_size(8),
-                                        width=320,
-                                        height=140,
+                                        width=page.width * 0.25,
+                                        height=page.height * 0.15,
                                         style=style_8x8,
                                     ),
                                 ],
@@ -56,6 +56,9 @@ class SelectBoardSizeView(ft.View):
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 spacing=40,
                             ),
+                            top=page.height * 0.35,
+                            left=0,
+                            right=0,
                             alignment=ft.alignment.center,
                             expand=True
                         )

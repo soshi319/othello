@@ -46,24 +46,24 @@ class SelectLevelView(ft.View):
                             content=ft.Column(
                                 controls=[
                                     ft.ElevatedButton(
-                                        content=ft.Text("マスター", size=40, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("マスター", size=page.width // 30, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: (page.__setattr__("level", "master"), page.go("/select_turn")),
-                                        width=300, height=130, style=style_master,
+                                        width=page.width // 6, height=page.height // 7, style=style_master,
                                     ),
                                     ft.ElevatedButton(
-                                        content=ft.Text("むずかしい", size=40, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("むずかしい", size=page.width // 30, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: (page.__setattr__("level", "hard"), page.go("/select_turn")),
-                                        width=300, height=130, style=style_hard,
+                                        width=page.width // 6, height=page.height // 7, style=style_hard,
                                     ),
                                     ft.ElevatedButton(
-                                        content=ft.Text("ふつう", size=40, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("ふつう", size=page.width // 30, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: (page.__setattr__("level", "normal"), page.go("/select_turn")),
-                                        width=300, height=130, style=style_normal,
+                                        width=page.width // 6, height=page.height // 7, style=style_normal,
                                     ),
                                     ft.ElevatedButton(
-                                        content=ft.Text("かんたん", size=40, weight=ft.FontWeight.BOLD),
+                                        content=ft.Text("かんたん", size=page.width // 30, weight=ft.FontWeight.BOLD),
                                         on_click=lambda _: (page.__setattr__("level", "easy"), page.go("/select_turn")),
-                                        width=300, height=130, style=style_easy,
+                                        width=page.width // 6, height=page.height // 7, style=style_easy,
                                     ),
                                     ft.ElevatedButton(
                                         content=ft.Text("鬼", size=10, weight=ft.FontWeight.BOLD),
@@ -78,6 +78,9 @@ class SelectLevelView(ft.View):
                             ),
                             # Containerの機能で、content(Column)を中央に配置
                             alignment=ft.alignment.center,
+                            top=page.height * 0.15,
+                            left=0,
+                            right=0,
                             expand=True,
                         ),
                     ]
