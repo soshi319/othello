@@ -255,7 +255,7 @@ class GameView(ft.View):
         board_vertical_lines = [ft.Container(height=board_length+2, width=2, bgcolor='#000000', top=0, left=i * grid_size) for i in range(settings.BOARD_SIZE + 1)]
         board_horizontal_lines = [ft.Container(height=2, width=board_length+2, bgcolor='#000000', top=i * grid_size, left=0) for i in range(settings.BOARD_SIZE + 1)]
 
-        dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 4, left=j * grid_size - 4, border_radius=4) for i in [settings.BOARD_SIZE//4, settings.BOARD_SIZE*3//4] for j in [settings.BOARD_SIZE//4, settings.BOARD_SIZE*3//4]]        
+        dots = [ft.Container(height=8, width=8, bgcolor='#000000', top=i * grid_size - 3, left=j * grid_size - 3, border_radius=4) for i in [settings.BOARD_SIZE//3, settings.BOARD_SIZE - settings.BOARD_SIZE//3] for j in [settings.BOARD_SIZE//3, settings.BOARD_SIZE - settings.BOARD_SIZE//3]]
         white_disc_front = ft.Container(height=grid_size * 8 / 10, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#fafafa')
         white_disc_back = ft.Container(height=grid_size * 83 / 100, width=grid_size * 8 / 10, border_radius=grid_size, bgcolor='#141212')
         white_discs = [ft.Stack(controls=[white_disc_back, white_disc_front], top=grid_size * row + grid_size * 1 / 10, left=grid_size * column + grid_size * 1 / 10, visible=False, ref=self.white_stones[row][column]) for row in range(settings.BOARD_SIZE) for column in range(settings.BOARD_SIZE)]
