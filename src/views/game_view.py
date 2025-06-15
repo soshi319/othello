@@ -140,8 +140,8 @@ class GameView(ft.View):
 
             self.turn_indicator_container = ft.Container(
                 content=ft.Stack([self.your_turn_image, self.cpu_turn_image]),
-                right=height * 0.02,
-                top=height * 0.25,
+                left=height * 0.02,
+                top=height * 0.02,
                 padding=5,
             )
 
