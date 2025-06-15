@@ -74,7 +74,7 @@ class SelectLevelView(ft.View):
                                 # Column自体の内部での配置設定
                                 alignment=ft.MainAxisAlignment.CENTER,
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                                spacing=30,
+                                spacing=page.height // 30,
                             ),
                             # Containerの機能で、content(Column)を中央に配置
                             alignment=ft.alignment.center,
