@@ -1,7 +1,6 @@
 # オセロアプリ (Othello App)
 
-Flet (Python) で制作した、AI対戦・観戦モード付きの本格的なオセロアプリです。
-手元のPCで動かすための環境構築と起動手順を説明します。
+Flet (Python) で制作した、文化祭用のオセロアプリです。
 
 ## 📥 必要な環境・ダウンロードするもの
 
@@ -39,9 +38,6 @@ pip install flet==0.21.2
 ```bash
 python main.py
 ```
-
-### ② `KMP_DUPLICATE_LIB_OK` に関するエラーについて
-Macや一部のWindows環境において、バックグラウンドの計算ライブラリが重複して強制終了するのを防ぐため、コード内で自動的に環境変数を制御する対策（`os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'`）を組み込んでいます。安心してお使いください。
 
 ---
 
