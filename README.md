@@ -1,81 +1,62 @@
-# Othello0 app
+# オセロアプリ (Othello App)
 
-## Run the app
+Flet (Python) で制作した、AI対戦・観戦モード付きの本格的なオセロアプリです。
+手元のPCで動かすための環境構築と起動手順を説明します。
 
-### uv
+## 📥 必要な環境・ダウンロードするもの
 
-Run as a desktop app:
+このアプリを動かすには、**Python** と、以下の **外部ライブラリ（パッケージ）** が必要です。
 
-```
-uv run flet run
-```
+### 1. 必須ソフトウェア
+* **Python 3.7 以上**（推奨）
+    * ダウンロード先: [Python公式サイト](https://www.python.org/)
+    * ※ インストール時、Windowsの場合は「Add Python.exe to PATH」に必ずチェックを入れてください。
 
-Run as a web app:
+### 2. 必要な外部ライブラリ
+このアプリの画面（GUI）は以下のライブラリを使用して構築されています。
+* **Flet (バージョン 0.21.2)**
 
-```
-uv run flet run --web
-```
+---
 
-### Poetry
+## 🚀 インストールと起動手順
 
-Install dependencies from `pyproject.toml`:
+Git Bashやターミナルを開き、以下の手順で実行してください。
 
-```
-poetry install
-```
-
-Run as a desktop app:
-
-```
-poetry run flet run
+### 1. リポジトリのクローンと移動
+```bash
+git clone [https://github.com/soshi319/othello.git](https://github.com/soshi319/othello.git)
+cd othello
 ```
 
-Run as a web app:
-
-```
-poetry run flet run --web
-```
-
-For more details on running the app, refer to the [Getting Started Guide](https://flet.dev/docs/getting-started/).
-
-## Build the app
-
-### Android
-
-```
-flet build apk -v
+### 2. 必須ライブラリのインストール
+このアプリに必須である `flet` をインストールします。
+```bash
+pip install flet==0.21.2
 ```
 
-For more details on building and signing `.apk` or `.aab`, refer to the [Android Packaging Guide](https://flet.dev/docs/publish/android/).
-
-### iOS
-
-```
-flet build ipa -v
+### 3. アプリの起動
+準備が完了したら、以下のコマンドでオセロアプリが全画面で起動します。
+```bash
+python main.py
 ```
 
-For more details on building and signing `.ipa`, refer to the [iOS Packaging Guide](https://flet.dev/docs/publish/ios/).
+---
 
-### macOS
+## 💡 トラブルシューティング（エラーが出た場合）
 
-```
-flet build macos -v
-```
-
-For more details on building macOS package, refer to the [macOS Packaging Guide](https://flet.dev/docs/publish/macos/).
-
-### Linux
-
-```
-flet build linux -v
+### ① 起動時にライブラリ関係のエラー（`ImportError` など）が出る場合
+環境によっては、`flet` 以外の一部の依存関係で競合が起きることがあります。その場合は一度以下のコマンドを試してください。
+```bash
+pip install --upgrade flet
 ```
 
-For more details on building Linux package, refer to the [Linux Packaging Guide](https://flet.dev/docs/publish/linux/).
+### ② `KMP_DUPLICATE_LIB_OK` に関するエラーについて
+Macや一部のWindows環境において、バックグラウンドの計算ライブラリが重複して強制終了するのを防ぐため、コード内で自動的に環境変数を制御する対策（`os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'`）を組み込んでいます。安心してお使いください。
 
-### Windows
+---
 
-```
-flet build windows -v
-```
-
-For more details on building Windows package, refer to the [Windows Packaging Guide](https://flet.dev/docs/publish/windows/).
+## 🎮 アプリの主な機能（アピールポイント）
+* **多彩なゲームモード**: プレイヤーvsAIだけでなく、「AI vs AI（観戦モード）」も搭載！
+* **5段階のAI難易度**: かんたん、ふつう、むずかしい、マスター、そして隠された「鬼」モードを実装！
+* **柔軟なゲーム設定**: 6x6、8x8の盤面サイズ切り替えや、AIの思考速度、探索回数も詳細にカスタマイズ可能。
+* **対戦記録機能**: 過去の戦績やAI同士の勝率マトリックス（総当たり表）を自動で保存・確認できます。
