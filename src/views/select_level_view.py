@@ -30,6 +30,7 @@ class SelectLevelView(ft.View):
             route,
             [
                 ft.Stack(
+                    expand=True,
                     controls=[
                         # --- レイヤー1：背景 ---
                         # expand=TrueでStack全体に広がる背景画像
@@ -47,22 +48,22 @@ class SelectLevelView(ft.View):
                                 controls=[
                                     ft.ElevatedButton(
                                         content=ft.Text("マスター", size=page.width // 30, weight=ft.FontWeight.BOLD),
-                                        on_click=lambda _: (page.__setattr__("level", "master"), page.go("/select_turn")),
+                                        on_click=lambda _: (page.__setattr__("level", "master"), page.__setattr__("is_ai_vs_ai", False), page.go("/select_turn")),
                                         width=page.width // 5, height=page.height // 7, style=style_master,
                                     ),
                                     ft.ElevatedButton(
                                         content=ft.Text("むずかしい", size=page.width // 30, weight=ft.FontWeight.BOLD),
-                                        on_click=lambda _: (page.__setattr__("level", "hard"), page.go("/select_turn")),
+                                        on_click=lambda _: (page.__setattr__("level", "hard"), page.__setattr__("is_ai_vs_ai", False), page.go("/select_turn")),
                                         width=page.width // 5, height=page.height // 7, style=style_hard,
                                     ),
                                     ft.ElevatedButton(
                                         content=ft.Text("ふつう", size=page.width // 30, weight=ft.FontWeight.BOLD),
-                                        on_click=lambda _: (page.__setattr__("level", "normal"), page.go("/select_turn")),
+                                        on_click=lambda _: (page.__setattr__("level", "normal"), page.__setattr__("is_ai_vs_ai", False), page.go("/select_turn")),
                                         width=page.width // 5, height=page.height // 7, style=style_normal,
                                     ),
                                     ft.ElevatedButton(
                                         content=ft.Text("かんたん", size=page.width // 30, weight=ft.FontWeight.BOLD),
-                                        on_click=lambda _: (page.__setattr__("level", "easy"), page.go("/select_turn")),
+                                        on_click=lambda _: (page.__setattr__("level", "easy"), page.__setattr__("is_ai_vs_ai", False), page.go("/select_turn")),
                                         width=page.width // 5, height=page.height // 7, style=style_easy,
                                     ),
                                     ft.ElevatedButton(
@@ -83,7 +84,24 @@ class SelectLevelView(ft.View):
                             right=0,
                             expand=True,
                         ),
+
+
+                        # --- [追記] レイヤー3：画面右下の観戦モードボタン ---
+                        ft.Container(
+                            content=ft.ElevatedButton(
+                                content=ft.Text("AI vs AI\n(観戦モード)", size=24, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
+                                on_click=lambda _: (page.__setattr__("is_ai_vs_ai", True), page.go("/select_ai")),
+                                style=ft.ButtonStyle(
+                                    bgcolor="#4A5568", color="#FFFFFF", overlay_color="#2D3748",
+                                    padding=15, shape=ft.RoundedRectangleBorder(radius=10)
+                                ),
+                            ),
+                            bottom=30,
+                            right=30,
+                        ),
                     ]
                 )
-            ]
+            ],
+            padding=0,
+            bgcolor='#299643'
         )

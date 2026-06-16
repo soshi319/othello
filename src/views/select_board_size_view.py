@@ -26,6 +26,7 @@ class SelectBoardSizeView(ft.View):
             route,
             [
                 ft.Stack(
+                    expand=True,
                     controls=[
                         # レイヤー1：背景
                         ft.Image(
@@ -65,6 +66,8 @@ class SelectBoardSizeView(ft.View):
                     ],
                 ),
             ],
+            padding=0,
+            bgcolor='#299643'
         )
 
     def _select_size(self, size: int) -> None:

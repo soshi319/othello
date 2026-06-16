@@ -1,5 +1,1 @@
-Traceback (most recent call last):
-  File "C:\Users\choko\Codes\Python\othello\src\views\game_view.py", line 120, in __init__
-    bgcolor=ft.colors.with_opacity(0.9, "#272f3a"),
-            ^^^^^^^^^
-AttributeError: module 'flet' has no attribute 'colors'. Did you mean: 'Colors'?
+
