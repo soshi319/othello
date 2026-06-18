@@ -5,12 +5,9 @@ class TitleView(ft.View):
   def __init__(self, page, route):
     self.page = page
     
-    # 起動直後に page.width が 0 になる場合に備え、
-    # 取得できない時は標準的なサイズ (1280x720) を仮の計算用に使用します
     w = page.width if page.width > 0 else 1280
     h = page.height if page.height > 0 else 720
     
-    # STARTボタンのスタイル（角丸の半径も画面の高さに合わせる）
     start_button_style = ft.ButtonStyle(
         bgcolor="#F05D23",
         color="#FFFFFF",
@@ -43,7 +40,6 @@ class TitleView(ft.View):
               fit=ft.ImageFit.COVER
             ),
             
-            # 中央：STARTボタン（画面の幅と高さに基づいて計算）
             ft.Container(
               content=ft.ElevatedButton(
                 # 文字サイズを画面幅の 1/30 に設定
@@ -81,7 +77,7 @@ class TitleView(ft.View):
                 on_click=lambda _: page.go("/records"),
                 style=exit_button_style,
               ),
-              bottom=h * 0.15,  # ★STARTボタン(0.25)の下に配置
+              bottom=h * 0.15,
               left=0,
               right=0,
               alignment=ft.alignment.center,

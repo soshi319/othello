@@ -1,5 +1,5 @@
 import os
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True' # ← この1行を追記します！
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
